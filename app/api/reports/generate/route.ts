@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
 import { createAndStoreReport, getUserProfile } from "@/lib/reports/service";
-import { notifyClient } from "@/lib/wealth/client-service";
 import { isReportKind } from "@/lib/wealth/period-calendar";
 import { getClientById, getLatestPeriodForClient } from "@/lib/wealth/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -44,25 +43,8 @@ export async function POST(request: Request) {
     }
 
     const kind = isReportKind(body.kind) ? body.kind : "monthly";
-    const { report, data } = await createAndStoreReport(
-      clientId,
-      periodId,
-      user.id,
-      kind,
-    );
-
-    await notifyClient({
-      clientId,
-      kind: "report",
-      title: "New wealth report",
-      body: `${report.title} is ready to download in your documents vault.`,
-      createdBy: user.id,
-      email: true,
-      report: {
-        kindTitle: data.reportKindTitle,
-        periodLabel: data.statementPeriodLabel,
-        asOfDate: data.periodEnd,
-      },
+    const { report } = await createAndStoreReport(clientId, periodId, user.id, kind, {
+      coverImageId: typeof body.coverImageId === "string" ? body.coverImageId : null,
     });
 
     return NextResponse.json({
@@ -71,6 +53,7 @@ export async function POST(request: Request) {
       reference: report.reference,
       generatedAt: report.generated_at,
       fileSizeBytes: report.file_size_bytes,
+      status: report.status,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Report generation failed";

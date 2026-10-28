@@ -22,7 +22,9 @@ export async function GET(request: Request) {
       if (!canAccessClient(session.profile, client.id, client.advisor_id)) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
-      const reports = await getClientReports(clientId);
+      const reports = await getClientReports(clientId, {
+        forClient: session.profile.role === "client",
+      });
       return NextResponse.json({ reports });
     }
 

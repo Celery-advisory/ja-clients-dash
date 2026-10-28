@@ -40,7 +40,7 @@ export function ClientAttentionCards({
           </p>
           <Link
             href="/clients/dashboard/sessions"
-            className={cn(buttonVariants({ size: "sm" }), "mt-3 h-8 bg-[#0a1f3d] text-white hover:bg-[#0a1f3d]/90")}
+            className={cn(buttonVariants({ size: "sm" }), "mt-3 h-8 bg-brand-primary text-white hover:bg-brand-primary/90")}
           >
             Request a session
           </Link>
@@ -82,7 +82,7 @@ export function ClientAttentionCards({
             </p>
             <Link
               href="/clients/dashboard/sessions"
-              className={cn(buttonVariants({ size: "sm" }), "mt-3 h-8 bg-[#0a1f3d] text-white hover:bg-[#0a1f3d]/90")}
+              className={cn(buttonVariants({ size: "sm" }), "mt-3 h-8 bg-brand-primary text-white hover:bg-brand-primary/90")}
             >
               Request a session
             </Link>

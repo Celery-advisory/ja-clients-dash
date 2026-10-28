@@ -127,6 +127,11 @@ export async function sendReportReadyEmail(params: {
   portalUrl: string;
   advisorEmail: string | null;
   advisorName: string | null;
+  totalValueUsd?: number;
+  periodGainUsd?: number;
+  periodReturnPct?: number | null;
+  sinceStartGainUsd?: number | null;
+  sinceStartPct?: number | null;
 }) {
   await sendRenderedEmail({
     to: params.to,
@@ -141,6 +146,11 @@ export async function sendReportReadyEmail(params: {
       advisorEmail: params.advisorEmail,
       advisorName: params.advisorName,
       clientNumber: params.clientNumber,
+      totalValueUsd: params.totalValueUsd,
+      periodGainUsd: params.periodGainUsd,
+      periodReturnPct: params.periodReturnPct,
+      sinceStartGainUsd: params.sinceStartGainUsd,
+      sinceStartPct: params.sinceStartPct,
     }),
   });
 }

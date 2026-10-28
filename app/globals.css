@@ -46,9 +46,10 @@
   --color-brand-mono-mid: var(--brand-mono-mid);
   --color-brand-mono-light: var(--brand-mono-light);
 
-  /* Fonts: Inter across headings, body, and figures */
+  /* Fonts: Playfair Display (the brand serif, as in the reports) for titles; Inter for body and figures */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
   --font-subheading: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-numeric: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
@@ -126,32 +127,32 @@
   --font-numeric: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
   /* Surfaces */
-  --background: #f6f7f9;
+  --background: #f7f6f3;
   --foreground: #1c1919;
   --card: #ffffff;
   --card-foreground: #1c1919;
-  --dashboard-surface: #f8f8f7;
-  --dashboard-surface-mid: #f4f5f7;
-  --dashboard-surface-end: #f0f2f6;
+  --dashboard-surface: #f7f6f3;
+  --dashboard-surface-mid: #f7f6f3;
+  --dashboard-surface-end: #f5f3ef;
   --popover: #ffffff;
   --popover-foreground: #1c1919;
-  --muted: #f1f3f5;
-  --muted-foreground: #484848;
+  --muted: #f3f1ec;
+  --muted-foreground: #5f5d58;
 
   /* Brand actions */
   --primary: #202356;
   --primary-foreground: #ffffff;
-  --secondary: #eceef2;
+  --secondary: #efede8;
   --secondary-foreground: #202356;
 
   /* Interactive hovers */
-  --accent: #e9ebf0;
+  --accent: #efede8;
   --accent-foreground: #202356;
 
   /* Feedback */
   --destructive: #c45c57;
-  --border: #e3e6eb;
-  --input: #e3e6eb;
+  --border: #e6e2da;
+  --input: #e1ddd4;
   --ring: #b2936b;
 
   /* Sidebar (navy shell) */
@@ -191,21 +192,21 @@
     line-height: 1.6;
   }
 
-  /* Dashboard Title – 30px 700 */
+  /* Dashboard Title: 30px serif. Playfair reads heavy when bold, so titles use 500. */
   h1 {
-    @apply font-heading text-h1 font-bold tracking-tight;
+    @apply font-heading text-h1 font-medium;
     line-height: 1.2;
   }
 
-  /* Page Heading – 24px 700 */
+  /* Page Heading: 24px serif */
   h2 {
-    @apply font-subheading text-h2 font-bold tracking-tight;
+    @apply font-heading text-h2 font-medium;
     line-height: 1.25;
   }
 
-  /* Section Heading – 20px 600 */
+  /* Section Heading: 20px serif */
   h3 {
-    @apply font-subheading text-h3 font-semibold;
+    @apply font-heading text-h3 font-medium;
     line-height: 1.3;
   }
 

@@ -177,7 +177,8 @@ export function StatementDataWorkspace({
   const [draft, setDraft] = useState<DraftSnapshot[]>(toDraft(initialSnapshots));
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [notify, setNotify] = useState(true);
+  // Off by default: clients hear about new figures when their report is published, after review.
+  const [notify, setNotify] = useState(false);
   const [creatingMonth, setCreatingMonth] = useState<string | null>(null);
   const [tx, setTx] = useState({
     occurredOn: "",
@@ -908,7 +909,7 @@ export function StatementDataWorkspace({
               onChange={(e) => setNotify(e.target.checked)}
               className="size-4 accent-primary"
             />
-            Email client when saved
+            Also email the client now (their report is emailed when you publish it)
           </label>
           <div className="flex flex-wrap items-center gap-3">
             {message ? <span className="text-sm text-muted-foreground">{message}</span> : null}

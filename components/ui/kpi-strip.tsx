@@ -135,18 +135,18 @@ function KpiItem({
         dashboardTheme.kpiTile,
         "flex flex-col gap-1 px-3.5 py-3",
         kpiSurfaceTones[surface],
-        emphasis === "primary" && "border-brand-primary/30 bg-[#eef0f7]",
-        onClick && !loading && "cursor-pointer transition-opacity hover:opacity-90",
+        emphasis === "primary" && "border-brand-primary/25",
+        onClick && !loading && "cursor-pointer transition-colors hover:border-brand-accent/60",
         className,
       )}
       {...props}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+        <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
           {label}
         </p>
         {icon ? (
-          <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-white/60 text-brand-primary [&_svg]:size-3.5">
+          <div className="flex size-5 shrink-0 items-center justify-center text-brand-primary/70 [&_svg]:size-3.5">
             {icon}
           </div>
         ) : null}
@@ -161,7 +161,7 @@ function KpiItem({
         <>
           <p
             className={cn(
-              "font-numeric text-[1.2rem] font-semibold tracking-tight tabular-nums sm:text-[1.3rem]",
+              "font-display text-[1.45rem] font-medium leading-tight tabular-nums sm:text-[1.6rem]",
               toneClass[resolvedTone],
             )}
           >

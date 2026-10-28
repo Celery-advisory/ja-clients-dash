@@ -55,7 +55,7 @@ export function ClientPrimaryGoal({ goal }: { goal: Goal | null }) {
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-muted">
           <div
-            className="h-full rounded-full bg-[#c9a227]"
+            className="h-full rounded-full bg-brand-accent"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -67,7 +67,7 @@ export function ClientPrimaryGoal({ goal }: { goal: Goal | null }) {
 export function ClientLatestReport({
   report,
 }: {
-  report: { id: string; name: string; date: string; downloadUrl: string } | null;
+  report: { id: string; name: string; date: string; readUrl: string } | null;
 }) {
   if (!report) {
     return (
@@ -92,10 +92,15 @@ export function ClientLatestReport({
       <div className="flex items-center gap-3 rounded-xl border border-border/40 bg-card px-3.5 py-3">
         <div className="flex-1 min-w-0">
           <p className="truncate text-sm">{report.name}</p>
-          <TextSmall className="text-muted-foreground">Sent {report.date}</TextSmall>
+          <TextSmall className="text-muted-foreground">Published {report.date}</TextSmall>
         </div>
-        <a href={report.downloadUrl} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-7 shrink-0 text-xs")}>
-          View
+        <a
+          href={report.readUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-7 shrink-0 text-xs")}
+        >
+          Read
         </a>
       </div>
     </section>

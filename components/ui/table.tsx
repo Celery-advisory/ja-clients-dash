@@ -32,7 +32,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
     <thead
       data-slot="table-header"
       className={cn(
-        "bg-[#f4f7fb] [&_tr]:border-b [&_tr]:border-[#e6ebf2] [&_tr]:hover:bg-transparent",
+        "bg-muted/50 [&_tr]:border-b [&_tr]:border-border [&_tr]:hover:bg-transparent",
         className,
       )}
       {...props}
@@ -55,7 +55,7 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
     <tfoot
       data-slot="table-footer"
       className={cn(
-        "border-t border-[#e6ebf2] bg-white font-medium [&>tr]:hover:bg-transparent",
+        "border-t border-border bg-white font-medium [&>tr]:hover:bg-transparent",
         className,
       )}
       {...props}
@@ -68,7 +68,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "border-b border-[#eef1f4] transition-colors hover:bg-[#fafbfd] data-[state=selected]:bg-[#f4f7fb]",
+        "border-b border-border/70 transition-colors hover:bg-muted/40 data-[state=selected]:bg-muted/60",
         className,
       )}
       {...props}
@@ -81,7 +81,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-11 px-4 text-left align-middle text-[13px] font-medium whitespace-nowrap text-[#64748b] [&:has([role=checkbox])]:pr-0",
+        "h-10 px-4 text-left align-middle text-[12px] font-medium whitespace-nowrap text-muted-foreground [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}
@@ -130,21 +130,22 @@ function ColumnLabel({
       )}
     >
       {children}
-      <ChevronsUpDown className="size-3 shrink-0 text-[#94a3b8]" aria-hidden />
+      <ChevronsUpDown className="size-3 shrink-0 text-muted-foreground/60" aria-hidden />
     </span>
   )
 }
 
+/** Muted tones drawn from the brand palette, so tags inform without competing with the figures. */
 const PILL_TONES = {
-  rose: "bg-[#fde8f0] text-[#d4537e]",
-  violet: "bg-[#f3e8ff] text-[#9333ea]",
-  indigo: "bg-[#e8eaff] text-[#4f46e5]",
-  sky: "bg-[#e0f2fe] text-[#0284c7]",
-  mint: "bg-[#d1fae5] text-[#0f766e]",
-  lime: "bg-[#ecfccb] text-[#4d7c0f]",
-  amber: "bg-[#fef3c7] text-[#b45309]",
-  orange: "bg-[#ffedd5] text-[#c2410c]",
-  slate: "bg-[#f1f5f9] text-[#475569]",
+  rose: "bg-[#f7e9e8] text-[#a34844]",
+  violet: "bg-[#ebebf3] text-[#202356]",
+  indigo: "bg-[#ebebf3] text-[#202356]",
+  sky: "bg-[#e9eef4] text-[#3d5a7a]",
+  mint: "bg-[#e8efe5] text-[#4d6b3c]",
+  lime: "bg-[#e8efe5] text-[#4d6b3c]",
+  amber: "bg-[#f4ece1] text-[#7d6340]",
+  orange: "bg-[#f5ebe3] text-[#8f5833]",
+  slate: "bg-[#efede8] text-[#5f5d58]",
 } as const
 
 type PillTone = keyof typeof PILL_TONES
@@ -161,7 +162,7 @@ function CategoryPill({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide",
+        "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11.5px] font-medium",
         PILL_TONES[tone],
         className,
       )}
@@ -224,7 +225,7 @@ function StatusMark({
   children: React.ReactNode
 }) {
   return (
-    <span className="inline-flex items-center gap-2 text-[12px] font-medium uppercase tracking-wide text-foreground">
+    <span className="inline-flex items-center gap-2 text-[13px] text-foreground first-letter:uppercase">
       <span className={cn("size-1.5 shrink-0 rounded-full", STATUS_DOT[tone])} aria-hidden />
       {children}
     </span>

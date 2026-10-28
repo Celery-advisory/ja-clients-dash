@@ -21,6 +21,8 @@ type Props = {
   className?: string;
   buttonVariant?: "default" | "outline";
   compact?: boolean;
+  /** Cover photo from the image library; the firm default is used when omitted. */
+  coverImageId?: string | null;
 };
 
 const KINDS: { kind: ReportKind; hint: string }[] = [
@@ -43,7 +45,9 @@ type ReadyReport = {
 function ReportPreviewLink({ report }: { report: ReadyReport }) {
   return (
     <div className="flex flex-col items-start gap-1.5">
-      <p className="text-xs text-muted-foreground">{report.title} is ready.</p>
+      <p className="text-xs text-muted-foreground">
+        {report.title} is saved as a draft. Check it, then publish it from the drafts list.
+      </p>
       <a
         href={`/api/reports/${report.id}/download?inline=1`}
         target="_blank"
@@ -64,6 +68,7 @@ export function GenerateReportButton({
   className,
   buttonVariant = "default",
   compact = false,
+  coverImageId = null,
 }: Props) {
   const [loading, setLoading] = useState<ReportKind | null>(null);
   const [ready, setReady] = useState<ReadyReport | null>(null);
@@ -77,7 +82,7 @@ export function GenerateReportButton({
       const res = await fetch("/api/reports/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId, periodId, kind }),
+        body: JSON.stringify({ clientId, periodId, kind, coverImageId }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Generation failed");

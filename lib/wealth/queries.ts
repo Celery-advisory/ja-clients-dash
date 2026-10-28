@@ -713,27 +713,38 @@ export async function getActiveDisclaimer(): Promise<WealthDisclaimer | null> {
   return rows[0] ?? null;
 }
 
-export async function getReportsForClient(clientId: string): Promise<WealthReport[]> {
+const REPORT_COLUMNS = `id, client_id, period_id, reference, title,
+  generated_at::text, storage_path, file_size_bytes, status::text, sections, template_key,
+  sent_at::text, cover_image_id, published_at::text, summary,
+  first_viewed_at::text, last_viewed_at::text, view_count`;
+
+/** Clients only ever see published reports; staff see drafts too. */
+export async function getReportsForClient(
+  clientId: string,
+  options?: { publishedOnly?: boolean },
+): Promise<WealthReport[]> {
   return queryDb<WealthReport>(
-    `SELECT id, client_id, period_id, reference, title,
-            generated_at::text, storage_path, file_size_bytes, status
+    `SELECT ${REPORT_COLUMNS}
      FROM wealth.reports
      WHERE client_id = $1
+       AND ($2::boolean IS NOT TRUE OR status = 'published')
      ORDER BY generated_at DESC`,
-    [clientId],
+    [clientId, options?.publishedOnly ?? false],
   );
 }
 
 export async function getReportById(reportId: string): Promise<WealthReport | null> {
   const rows = await queryDb<WealthReport>(
-    `SELECT id, client_id, period_id, reference, title,
-            generated_at::text, storage_path, file_size_bytes, status
-     FROM wealth.reports WHERE id = $1`,
+    `SELECT ${REPORT_COLUMNS} FROM wealth.reports WHERE id = $1`,
     [reportId],
   );
   return rows[0] ?? null;
 }
 
+/**
+ * Saves a generated report as a draft. Regenerating a report that was already
+ * published takes it back to draft, so the new file is reviewed before the client sees it.
+ */
 export async function insertReport(row: {
   clientId: string;
   periodId: string;
@@ -744,12 +755,14 @@ export async function insertReport(row: {
   generatedBy?: string | null;
   templateKey?: string | null;
   sections?: string[] | null;
+  coverImageId?: string | null;
+  summary?: unknown;
 }): Promise<WealthReport> {
   const rows = await queryDb<WealthReport>(
     `INSERT INTO wealth.reports (
       client_id, period_id, reference, title, storage_path, file_size_bytes,
-      generated_by, template_key, sections
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb)
+      generated_by, template_key, sections, cover_image_id, summary, status
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11::jsonb, 'draft')
     ON CONFLICT (client_id, period_id, reference) DO UPDATE SET
       title = EXCLUDED.title,
       storage_path = EXCLUDED.storage_path,
@@ -757,11 +770,14 @@ export async function insertReport(row: {
       generated_by = EXCLUDED.generated_by,
       template_key = EXCLUDED.template_key,
       sections = EXCLUDED.sections,
+      cover_image_id = EXCLUDED.cover_image_id,
+      summary = EXCLUDED.summary,
       generated_at = now(),
-      status = 'published'
-    RETURNING id, client_id, period_id, reference, title,
-              generated_at::text, storage_path, file_size_bytes, status::text,
-              sections, template_key, sent_at::text`,
+      status = 'draft',
+      published_at = NULL,
+      published_by = NULL,
+      sent_at = NULL
+    RETURNING ${REPORT_COLUMNS}`,
     [
       row.clientId,
       row.periodId,
@@ -772,9 +788,48 @@ export async function insertReport(row: {
       row.generatedBy ?? null,
       row.templateKey ?? null,
       row.sections ? JSON.stringify(row.sections) : null,
+      row.coverImageId ?? null,
+      row.summary ? JSON.stringify(row.summary) : null,
     ],
   );
   return rows[0];
+}
+
+/** Publishes a draft. Returns null when the report is missing or already published. */
+export async function publishReport(reportId: string, userId: string): Promise<WealthReport | null> {
+  const rows = await queryDb<WealthReport>(
+    `UPDATE wealth.reports
+     SET status = 'published', published_at = now(), published_by = $2
+     WHERE id = $1 AND status = 'draft'
+     RETURNING ${REPORT_COLUMNS}`,
+    [reportId, userId],
+  );
+  return rows[0] ?? null;
+}
+
+export async function markReportSent(reportId: string) {
+  await queryDb(`UPDATE wealth.reports SET sent_at = now() WHERE id = $1`, [reportId]);
+}
+
+export async function markReportViewed(reportId: string) {
+  await queryDb(
+    `UPDATE wealth.reports
+     SET first_viewed_at = COALESCE(first_viewed_at, now()),
+         last_viewed_at = now(),
+         view_count = view_count + 1
+     WHERE id = $1 AND status = 'published'`,
+    [reportId],
+  );
+}
+
+/** Only drafts can be discarded; published reports stay on the client's record. */
+export async function deleteDraftReport(reportId: string): Promise<WealthReport | null> {
+  const rows = await queryDb<WealthReport>(
+    `DELETE FROM wealth.reports WHERE id = $1 AND status = 'draft'
+     RETURNING ${REPORT_COLUMNS}`,
+    [reportId],
+  );
+  return rows[0] ?? null;
 }
 
 export async function listClients(advisorId?: string | null): Promise<WealthClient[]> {

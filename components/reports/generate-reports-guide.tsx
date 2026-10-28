@@ -30,9 +30,13 @@ export function GenerateReportsGuide() {
           <li>
             Click{" "}
             <span className="font-medium text-foreground">Generate report</span> for a
-            monthly, quarterly, or annual PDF. That is the only way a statement is created.
-            It then appears in the client portal. Outstanding statements stay at the top of
-            this page until you generate them.
+            monthly, quarterly, or annual PDF. It is saved as a draft that only staff can see.
+          </li>
+          <li>
+            Preview the draft below, then{" "}
+            <span className="font-medium text-foreground">Publish</span>. The client gets it in
+            their portal and an email with the headline numbers. Outstanding statements stay at
+            the top of this page until they are published.
           </li>
         </ol>
         <TextSmall className="text-muted-foreground">

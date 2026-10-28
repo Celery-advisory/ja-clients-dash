@@ -179,6 +179,12 @@ export interface WealthReport {
   sections: string[] | null;
   template_key: string | null;
   sent_at: string | null;
+  cover_image_id?: string | null;
+  published_at?: string | null;
+  summary?: unknown;
+  first_viewed_at?: string | null;
+  last_viewed_at?: string | null;
+  view_count?: number;
 }
 
 export interface WealthDisclaimer {

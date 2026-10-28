@@ -183,7 +183,7 @@ export function ClientsRosterWorkspace({
 
       <div className="flex flex-col gap-3">
         <SectionLabel>Roster</SectionLabel>
-        <nav className="flex min-w-max gap-5 overflow-x-auto border-b border-border/70">
+        <nav className="flex gap-5 overflow-x-auto border-b border-border/70 [scrollbar-width:none] [&>*]:shrink-0">
           {STATUS_TABS.map((tab) => {
             const active = statusFilter === tab.id;
             const count = counts[tab.id] ?? 0;

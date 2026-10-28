@@ -475,10 +475,18 @@ function PerfStat({
   return (
     <div>
       <Muted className="text-[11px] tracking-wide uppercase">{label}</Muted>
-      <p className={cn("mt-1 font-numeric text-lg font-semibold", toneClass(gain))}>
-        {gain == null ? "n/a" : formatCompactUsd(gain, true)}
-      </p>
-      <p className={cn("font-numeric text-sm", toneClass(pct))}>{signedPct(pct)}</p>
+      {gain == null ? (
+        <p className={cn("mt-1 font-numeric text-lg font-semibold", toneClass(pct))}>
+          {signedPct(pct)}
+        </p>
+      ) : (
+        <>
+          <p className={cn("mt-1 font-numeric text-lg font-semibold", toneClass(gain))}>
+            {formatCompactUsd(gain, true)}
+          </p>
+          <p className={cn("font-numeric text-sm", toneClass(pct))}>{signedPct(pct)}</p>
+        </>
+      )}
     </div>
   );
 }
@@ -890,6 +898,10 @@ export function PortfolioOverview({
   const activity = [...transactions].sort((a, b) => b.occurred_on.localeCompare(a.occurred_on));
   const visibleActivity = activityExpanded ? activity : activity.slice(0, 5);
   const returnsAdjusted = Boolean(periodPerf?.adjusted || ytdPerf?.adjusted);
+  // The statement's YTD figure is the one on the Overview and in the PDF, so it wins here too.
+  // A YTD worked out from history without dated cash flows counts deposits as growth.
+  const ytdPct = portfolio?.ytdPct ?? ytdPerf?.pct ?? null;
+  const ytdGain = ytdPerf?.adjusted ? ytdPerf.gain : null;
 
   function focusSlice(slice: AllocSlice | null) {
     if (!slice) {
@@ -954,8 +966,8 @@ export function PortfolioOverview({
             <PerfStat label="Period return" gain={periodPerf?.gain ?? null} pct={periodPerf?.pct ?? null} />
             <PerfStat
               label="YTD return"
-              gain={ytdPerf?.gain ?? null}
-              pct={ytdPerf?.pct ?? portfolio?.ytdPct ?? null}
+              gain={ytdGain}
+              pct={ytdPct}
             />
           </div>
         </div>

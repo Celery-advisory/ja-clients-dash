@@ -2,19 +2,19 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
-// Dashboard Title – 30px 700
+// Dashboard Title: 30px serif
 const h1Variants = cva(
-  "font-heading text-h1 font-bold tracking-tight leading-tight"
+  "font-heading text-h1 font-medium leading-tight"
 );
 
-// Page Heading – 24px 700
+// Page Heading: 24px serif
 const h2Variants = cva(
-  "font-subheading text-h2 font-bold tracking-tight leading-snug"
+  "font-heading text-h2 font-medium leading-snug"
 );
 
-// Section Heading – 20px 600
+// Section Heading: 20px serif
 const h3Variants = cva(
-  "font-subheading text-h3 font-semibold leading-snug"
+  "font-heading text-h3 font-medium leading-snug"
 );
 
 // Card Title – 18px 600

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Settings } from "lucide-react";
 import { DashboardTopBar } from "@/components/layout/dashboard-top-bar";
@@ -19,6 +20,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
+  useSidebar,
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -32,6 +34,16 @@ interface DashboardShellProps {
   userName?: string;
   userInitials?: string;
   profileHref?: string;
+}
+
+/** On phones the menu is a sheet over the page; close it once a link has been followed. */
+function CloseMobileMenuOnNavigate() {
+  const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
+  useEffect(() => {
+    setOpenMobile(false);
+  }, [pathname, setOpenMobile]);
+  return null;
 }
 
 function DashboardShell({
@@ -53,6 +65,7 @@ function DashboardShell({
       defaultOpen
       style={{ "--sidebar-width-icon": "4.5rem" } as React.CSSProperties}
     >
+      <CloseMobileMenuOnNavigate />
       <Sidebar collapsible="icon" className="border-r border-sidebar-border">
         <SidebarHeader className="gap-2 px-2 py-3">
           <Link
@@ -94,7 +107,8 @@ function DashboardShell({
                         tooltip={item.label}
                         className={cn(
                           "h-auto gap-2.5 px-2.5 py-1.5",
-                          "data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground",
+                          // Active item: a light lift with a gold edge, rather than a solid gold block.
+                          "text-white/75 hover:text-white data-active:bg-white/10 data-active:text-white data-active:shadow-[inset_2px_0_0_var(--brand-accent)] data-active:[&_svg]:text-brand-accent",
                           "group-data-[collapsible=icon]:size-10! group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:p-0!",
                           "group-data-[collapsible=icon]:[&>span:not(.badge)]:hidden"
                         )}

@@ -2,7 +2,7 @@ import path from "node:path";
 
 export const JA_REPORT_LOGO = path.join(
   process.cwd(),
-  "public/logos/JA_Wealth_wht.png",
+  "public/logos/JA_Wealth_wht_print.png",
 );
 
 export const JA_REPORT_LOGO_DARK = path.join(
@@ -10,6 +10,7 @@ export const JA_REPORT_LOGO_DARK = path.join(
   "public/logos/JA_Wealth_blk.png",
 );
 
+/** Default cover photo when the image library is unavailable. */
 export const COVER_SKYLINE = path.join(
   process.cwd(),
   "public/report-assets/cover-skyline.jpg",
@@ -18,9 +19,4 @@ export const COVER_SKYLINE = path.join(
 export const ALLOCATION_DESK = path.join(
   process.cwd(),
   "public/report-assets/allocation-desk.jpg",
-);
-
-export const BACK_COVER_PATTERN = path.join(
-  process.cwd(),
-  "public/report-assets/back-cover-pattern.jpg",
 );

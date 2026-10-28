@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Download, Loader2, Upload } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Download, Loader2, Upload } from "lucide-react";
 
 import { ClientEmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
@@ -142,25 +143,41 @@ export function ClientDocumentsView() {
   const sharedVault = data?.documents ?? [];
   const reports = data?.reports ?? [];
   const expiring = data?.expiring ?? [];
-  const hasAnything =
-    pendingRequests.length > 0 || sharedVault.length > 0 || reports.length > 0;
+  const hasAnything = pendingRequests.length > 0 || sharedVault.length > 0;
+  const reportsPointer =
+    reports.length > 0 ? (
+      <Link
+        href="/clients/dashboard/reports"
+        className="flex items-center justify-between gap-3 rounded-xl border border-border/40 bg-card px-4 py-3 text-sm hover:bg-muted/40"
+      >
+        <span>
+          Your {reports.length === 1 ? "report is" : `${reports.length} reports are`} in{" "}
+          <span className="font-medium">Reports</span>.
+        </span>
+        <ArrowRight className="size-4 text-muted-foreground" aria-hidden />
+      </Link>
+    ) : null;
 
   if (!hasAnything) {
     return (
-      <DashCard>
-        <DashCardContent>
-          <ClientEmptyState
-            variant="documents"
-            title="No documents yet"
-            description="When your wealth manager requests files or shares reports and statements, they will appear here."
-          />
-        </DashCardContent>
-      </DashCard>
+      <div className="flex flex-col gap-4">
+        {reportsPointer}
+        <DashCard>
+          <DashCardContent>
+            <ClientEmptyState
+              variant="documents"
+              title="No documents yet"
+              description="When your wealth manager requests files or shares documents, they will appear here."
+            />
+          </DashCardContent>
+        </DashCard>
+      </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-6">
+      {reportsPointer}
       {expiring.length > 0 ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3">
           <TextSmall className="font-medium text-amber-900">
@@ -188,23 +205,6 @@ export function ClientDocumentsView() {
       <section>
         <H3 className="mb-3 text-base">Shared by your wealth manager</H3>
         <div className="flex flex-col gap-2">
-          {reports.map((r) => (
-            <div
-              key={`report-${r.id}`}
-              className="flex items-center justify-between gap-3 rounded-xl border border-border/40 p-4"
-            >
-              <div>
-                <TextSmall className="font-medium">{r.name}</TextSmall>
-                <Muted className="text-sm">Report · {r.date}</Muted>
-              </div>
-              <a href={r.downloadUrl}>
-                <Button size="sm" variant="outline">
-                  <Download className="size-4" />
-                  Download
-                </Button>
-              </a>
-            </div>
-          ))}
           {sharedVault.map((d) => (
             <div
               key={d.id}
@@ -225,7 +225,7 @@ export function ClientDocumentsView() {
               </a>
             </div>
           ))}
-          {reports.length === 0 && sharedVault.length === 0 ? (
+          {sharedVault.length === 0 ? (
             <Muted className="text-sm">No shared documents yet.</Muted>
           ) : null}
         </div>

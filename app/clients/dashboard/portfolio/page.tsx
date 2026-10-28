@@ -49,6 +49,15 @@ function ChangeCell({ value }: { value: number | null }) {
   );
 }
 
+/** "+4.2%" or "-1.1%": the sign follows the number, so a fall never shows as a gain. */
+function signedPct(value: number) {
+  return `${value > 0 ? "+" : value < 0 ? "-" : ""}${Math.abs(value).toFixed(1)}%`;
+}
+
+function trendOf(value: number): "up" | "down" | "neutral" {
+  return value > 0 ? "up" : value < 0 ? "down" : "neutral";
+}
+
 export default function ClientPortfolioPage() {
   const { format } = useCurrency();
   const { data, allocationSlices, loading, error, empty } = useJaPortfolio();
@@ -147,9 +156,19 @@ export default function ClientPortfolioPage() {
       </header>
 
       <KpiStrip>
-        <KpiItem label="Total Portfolio" value={format(data.totalUSD)} change={`+${data.periodReturnPct.toFixed(1)}% this period`} trend="up" />
+        <KpiItem
+          label="Total Portfolio"
+          value={format(data.totalUSD)}
+          change={`${signedPct(data.periodReturnPct)} this period`}
+          trend={trendOf(data.periodReturnPct)}
+        />
         <KpiItem label="Period Gain" value={format(data.periodGainUsd)} change="Statement period" trend={data.periodGainUsd >= 0 ? "up" : "down"} />
-        <KpiItem label="Best Portfolio" value={bestBucket?.label ?? "N/A"} change={bestBucket?.ytdPct != null ? `+${bestBucket.ytdPct.toFixed(1)}% YTD` : ""} trend="up" />
+        <KpiItem
+          label="Best Portfolio"
+          value={bestBucket?.label ?? "N/A"}
+          change={bestBucket?.ytdPct != null ? `${signedPct(bestBucket.ytdPct)} YTD` : ""}
+          trend={bestBucket?.ytdPct != null ? trendOf(bestBucket.ytdPct) : "neutral"}
+        />
         <KpiItem label="Cash On Account" value={format(data.cashUSD ?? 0)} change="Uninvested cash" trend="neutral" />
       </KpiStrip>
 

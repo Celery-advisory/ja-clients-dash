@@ -253,6 +253,7 @@ export async function listOutstandingReports(
        SELECT 1
        FROM wealth.reports r
        WHERE r.client_id = n.client_id
+         AND r.status = 'published'
          AND split_part(r.reference, '/', 2) = n.token
          AND (
            (n.match_period AND r.period_id = n.period_id)
@@ -1193,28 +1194,44 @@ export async function getBookAumHistory(
   advisorId?: string | null,
 ): Promise<BookAumHistoryPoint[]> {
   // Month-end forward-fill so each point reflects the full book, not only
-  // clients that share an identical history stamp.
+  // clients that share an identical history stamp. Statements are the source of
+  // truth (they feed the reports and the book total), so a client's history
+  // points are used only when that client has no statements yet. The last point
+  // then matches the book total built from the latest statements.
   const rows = await queryDb<{ recorded_on: string; total: string }>(
     `WITH scoped_clients AS (
        SELECT id
        FROM wealth.clients
        WHERE ($1::uuid IS NULL OR advisor_id = $1)
      ),
-     months AS (
-       SELECT DISTINCT date_trunc('month', h.recorded_on)::date AS month_start
+     points AS (
+       SELECT h.client_id, h.recorded_on::date AS on_date, h.total_value_usd AS value, 1 AS source_rank
        FROM wealth.portfolio_history h
        JOIN scoped_clients c ON c.id = h.client_id
+       WHERE NOT EXISTS (
+         SELECT 1 FROM wealth.statement_periods sp WHERE sp.client_id = h.client_id
+       )
+       UNION ALL
+       SELECT sp.client_id, sp.period_end::date, SUM(ps.current_value_usd), 0
+       FROM wealth.statement_periods sp
+       JOIN scoped_clients c ON c.id = sp.client_id
+       JOIN wealth.portfolio_snapshots ps ON ps.period_id = sp.id
+       GROUP BY sp.client_id, sp.period_end
+     ),
+     months AS (
+       SELECT DISTINCT date_trunc('month', on_date)::date AS month_start
+       FROM points
      ),
      filled AS (
        SELECT
          m.month_start,
          c.id AS client_id,
          (
-           SELECT h.total_value_usd
-           FROM wealth.portfolio_history h
-           WHERE h.client_id = c.id
-             AND h.recorded_on < (m.month_start + interval '1 month')
-           ORDER BY h.recorded_on DESC
+           SELECT p.value
+           FROM points p
+           WHERE p.client_id = c.id
+             AND p.on_date < (m.month_start + interval '1 month')
+           ORDER BY p.on_date DESC, p.source_rank ASC
            LIMIT 1
          ) AS value
        FROM months m

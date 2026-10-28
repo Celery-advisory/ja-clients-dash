@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
 import { createAndStoreReport } from "@/lib/reports/service";
-import { notifyClient } from "@/lib/wealth/client-service";
 import { getLatestPeriodForClient, getClientById } from "@/lib/wealth/queries";
 import { getAdvisorApiSession } from "@/lib/wealth/session";
 import { isReportKind } from "@/lib/wealth/period-calendar";
@@ -39,6 +38,8 @@ export async function POST(request: Request) {
       ? "quarterly"
       : "monthly";
 
+  const coverImageId = typeof body.coverImageId === "string" ? body.coverImageId : null;
+
   const results: Array<{ clientId: string; ok: boolean; error?: string; reportId?: string }> = [];
 
   for (const clientId of clientIds) {
@@ -53,26 +54,13 @@ export async function POST(request: Request) {
         results.push({ clientId, ok: false, error: "No statement period" });
         continue;
       }
-      const { report, data } = await createAndStoreReport(
+      const { report } = await createAndStoreReport(
         clientId,
         period.id,
         session.userId,
         kind,
-        { templateKey, sections },
+        { templateKey, sections, coverImageId },
       );
-      await notifyClient({
-        clientId,
-        kind: "report",
-        title: "New wealth report",
-        body: `${report.title} is ready to download in your documents vault.`,
-        createdBy: session.userId,
-        email: true,
-        report: {
-          kindTitle: data.reportKindTitle,
-          periodLabel: data.statementPeriodLabel,
-          asOfDate: data.periodEnd,
-        },
-      });
       results.push({ clientId, ok: true, reportId: report.id });
     } catch (err) {
       results.push({

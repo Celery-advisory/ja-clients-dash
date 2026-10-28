@@ -20,7 +20,7 @@ export async function GET() {
   const [requests, documents, reports] = await Promise.all([
     listDocumentRequests(null, clientId),
     listVaultDocuments(clientId),
-    getClientReports(clientId),
+    getClientReports(clientId, { forClient: true }),
   ]);
 
   const expiring = (await listExpiringDocuments(null, 30)).filter(

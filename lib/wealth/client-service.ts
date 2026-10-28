@@ -246,6 +246,12 @@ export type ReportEmailMeta = {
   kindTitle: string;
   periodLabel: string;
   asOfDate: string;
+  /** Headline numbers shown in the email, so most clients get the answer without signing in. */
+  totalValueUsd?: number;
+  periodGainUsd?: number;
+  periodReturnPct?: number | null;
+  sinceStartGainUsd?: number | null;
+  sinceStartPct?: number | null;
 };
 
 export async function notifyClient(params: {
@@ -256,7 +262,7 @@ export async function notifyClient(params: {
   createdBy?: string | null;
   email?: boolean;
   report?: ReportEmailMeta;
-}) {
+}): Promise<{ emailed: boolean }> {
   await insertClientUpdate({
     clientId: params.clientId,
     kind: params.kind,
@@ -265,10 +271,10 @@ export async function notifyClient(params: {
     createdBy: params.createdBy,
   });
 
-  if (!params.email) return;
+  if (!params.email) return { emailed: false };
 
   const client = await getClientById(params.clientId);
-  if (!client) return;
+  if (!client) return { emailed: false };
 
   const profileRows = await queryDb<{ email_notifications: boolean }>(
     `SELECT COALESCE(email_notifications, true) AS email_notifications
@@ -277,7 +283,7 @@ export async function notifyClient(params: {
      LIMIT 1`,
     [params.clientId],
   );
-  if (profileRows[0] && !profileRows[0].email_notifications) return;
+  if (profileRows[0] && !profileRows[0].email_notifications) return { emailed: false };
 
   const origin = appOrigin();
   const portalUrl = `${origin}/clients/dashboard`;
@@ -294,12 +300,17 @@ export async function notifyClient(params: {
         periodLabel: shortPeriodLabel(params.report.periodLabel),
         kindTitle: params.report.kindTitle,
         asOfLabel: asOfMonthDay(params.report.asOfDate),
-        reportUrl: `${origin}/clients/dashboard/documents`,
+        reportUrl: `${origin}/clients/dashboard/reports`,
         portalUrl,
         advisorEmail: advisor?.email ?? null,
         advisorName: advisor?.full_name ?? null,
+        totalValueUsd: params.report.totalValueUsd,
+        periodGainUsd: params.report.periodGainUsd,
+        periodReturnPct: params.report.periodReturnPct,
+        sinceStartGainUsd: params.report.sinceStartGainUsd,
+        sinceStartPct: params.report.sinceStartPct,
       });
-      return;
+      return { emailed: true };
     }
 
     await sendClientUpdateEmail({
@@ -309,7 +320,9 @@ export async function notifyClient(params: {
       body: params.body,
       loginUrl: portalUrl,
     });
+    return { emailed: true };
   } catch {
     /* email is best-effort; the in-portal update still lands */
+    return { emailed: false };
   }
 }

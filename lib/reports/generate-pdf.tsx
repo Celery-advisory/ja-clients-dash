@@ -1,6 +1,7 @@
 import { renderToBuffer } from "@react-pdf/renderer";
 
 import { assembleInvestmentReportData } from "@/lib/reports/assemble-report-data";
+import { resolveCoverImage } from "@/lib/reports/cover-images";
 import { registerReportFonts } from "@/lib/reports/pdf/report-fonts";
 import { InvestmentReportDocument } from "@/lib/reports/pdf/investment-report-document";
 import type { InvestmentReportData } from "@/lib/reports/types";
@@ -20,14 +21,13 @@ export async function generateInvestmentReportPdf(
   periodId: string,
   kind: ReportKind = "monthly",
   sections?: ReportSectionKey[] | null,
-): Promise<{ buffer: Buffer; data: InvestmentReportData }> {
-  const data = await assembleInvestmentReportData(
-    clientId,
-    periodId,
-    new Date(),
-    kind,
-    sections,
-  );
+  options?: { coverImageId?: string | null },
+): Promise<{ buffer: Buffer; data: InvestmentReportData; coverImageId: string | null }> {
+  const [data, cover] = await Promise.all([
+    assembleInvestmentReportData(clientId, periodId, new Date(), kind, sections),
+    resolveCoverImage(options?.coverImageId),
+  ]);
+  data.coverImageSrc = cover.src;
   const buffer = await renderInvestmentReportPdf(data);
-  return { buffer, data };
+  return { buffer, data, coverImageId: cover.id };
 }

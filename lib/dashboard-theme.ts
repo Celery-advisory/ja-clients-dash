@@ -7,10 +7,11 @@ export const dashboardTheme = {
     "rounded-xl border border-border/70 bg-card shadow-[0_1px_2px_rgba(32,35,86,0.03)]",
 } as const;
 
+/** Every summary tile sits on the same white surface; colour is kept for the figures themselves. */
 export const kpiSurfaceTones = {
-  navy: "border-[#d9dde9] bg-[#eef0f7]",
-  gold: "border-[#e8dcc8] bg-[#f7f1e8]",
-  sage: "border-[#d7e2cf] bg-[#eef3ea]",
-  warm: "border-[#ead9cc] bg-[#f8efe9]",
-  plain: "border-border/70 bg-card",
+  navy: "border-border bg-card",
+  gold: "border-border bg-card",
+  sage: "border-border bg-card",
+  warm: "border-border bg-card",
+  plain: "border-border bg-card",
 } as const;

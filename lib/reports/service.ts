@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { queryDb } from "@/lib/supabase/db";
 import { generateInvestmentReportPdf } from "@/lib/reports/generate-pdf";
+import { buildReportSummary } from "@/lib/reports/summary";
 import { insertReport } from "@/lib/wealth/queries";
 import type { ReportKind } from "@/lib/wealth/period-calendar";
 import type { ReportSectionKey } from "@/lib/wealth/wm-types";
@@ -13,13 +14,15 @@ export async function createAndStoreReport(
   options?: {
     templateKey?: string | null;
     sections?: ReportSectionKey[] | null;
+    coverImageId?: string | null;
   },
 ) {
-  const { buffer, data } = await generateInvestmentReportPdf(
+  const { buffer, data, coverImageId } = await generateInvestmentReportPdf(
     clientId,
     periodId,
     kind,
     options?.sections,
+    { coverImageId: options?.coverImageId },
   );
   const fileName = `${data.reference.replace(/\//g, "-")}.pdf`;
   let storagePath = `${clientId}/${periodId}/${kind}/${fileName}`;
@@ -50,16 +53,27 @@ export async function createAndStoreReport(
     generatedBy,
     templateKey: options?.templateKey ?? null,
     sections: data.includedSections,
+    coverImageId,
+    summary: buildReportSummary(data),
   });
 
   return { report, data, storedInBucket };
 }
 
-export async function getReportDownloadUrl(storagePath: string, expiresIn = 3600) {
+/** A signed link to the stored PDF. Pass `download` (a file name) to save it rather than open it in the browser. */
+export async function getReportDownloadUrl(
+  storagePath: string,
+  expiresIn = 3600,
+  options?: { download?: string },
+) {
   const admin = createAdminClient();
   const { data, error } = await admin.storage
     .from("reports")
-    .createSignedUrl(storagePath, expiresIn);
+    .createSignedUrl(
+      storagePath,
+      expiresIn,
+      options?.download ? { download: options.download } : undefined,
+    );
 
   if (error || !data?.signedUrl) {
     throw new Error(error?.message ?? "Could not create download URL");

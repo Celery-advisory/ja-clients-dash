@@ -19,7 +19,25 @@ export type ReportReadyEmailProps = {
   advisorEmail: string | null;
   advisorName: string | null;
   clientNumber: string;
+  totalValueUsd?: number;
+  periodGainUsd?: number;
+  periodReturnPct?: number | null;
+  sinceStartGainUsd?: number | null;
+  sinceStartPct?: number | null;
 };
+
+function usd(value: number) {
+  return `$${Math.round(Math.abs(value)).toLocaleString("en-US")}`;
+}
+
+function signedUsd(value: number) {
+  return `${value < 0 ? "-" : "+"}${usd(value)}`;
+}
+
+function signedPct(value: number | null | undefined) {
+  if (value == null || !Number.isFinite(value)) return null;
+  return `${value < 0 ? "-" : "+"}${Math.abs(value).toFixed(1)}%`;
+}
 
 function HighlightCard({
   label,
@@ -73,7 +91,20 @@ export function ReportReadyEmail({
   advisorEmail,
   advisorName,
   clientNumber,
+  totalValueUsd,
+  periodGainUsd,
+  periodReturnPct,
+  sinceStartGainUsd,
+  sinceStartPct,
 }: ReportReadyEmailProps) {
+  const hasNumbers = typeof totalValueUsd === "number" && typeof periodGainUsd === "number";
+  const periodChange = hasNumbers
+    ? [signedUsd(periodGainUsd), signedPct(periodReturnPct)].filter(Boolean).join(" · ")
+    : null;
+  const sinceStart =
+    sinceStartGainUsd != null
+      ? [signedUsd(sinceStartGainUsd), signedPct(sinceStartPct)].filter(Boolean).join(" · ")
+      : null;
   const contactName = advisorName ?? "your wealth manager";
   const contactLine = advisorEmail ? (
     <>
@@ -102,30 +133,59 @@ export function ReportReadyEmail({
         Hello {firstName}, here's your {kindTitle.toLowerCase()} as of {asOfLabel}.
       </EmailBodyText>
 
-      <Row style={{ marginBottom: "16px" }}>
-        <Column style={{ width: "50%", paddingRight: "5px", verticalAlign: "top" }}>
-          <HighlightCard
-            label="PERIOD"
-            value={periodLabel}
-            background={emailColors.cream}
-            labelColor={emailColors.creamLabel}
-          />
-        </Column>
-        <Column style={{ width: "50%", paddingLeft: "5px", verticalAlign: "top" }}>
-          <HighlightCard
-            label="STATUS"
-            value="Ready to view"
-            background={emailColors.sage}
-            labelColor={emailColors.sageLabel}
-          />
-        </Column>
-      </Row>
+      {hasNumbers ? (
+        <Row style={{ marginBottom: "16px" }}>
+          <Column style={{ width: "34%", paddingRight: "5px", verticalAlign: "top" }}>
+            <HighlightCard
+              label="PORTFOLIO VALUE"
+              value={usd(totalValueUsd)}
+              background={emailColors.cream}
+              labelColor={emailColors.creamLabel}
+            />
+          </Column>
+          <Column style={{ width: "33%", padding: "0 5px", verticalAlign: "top" }}>
+            <HighlightCard
+              label="THIS PERIOD"
+              value={periodChange ?? ""}
+              background={emailColors.sage}
+              labelColor={emailColors.sageLabel}
+            />
+          </Column>
+          <Column style={{ width: "33%", paddingLeft: "5px", verticalAlign: "top" }}>
+            <HighlightCard
+              label="SINCE YOU STARTED"
+              value={sinceStart ?? "Not yet available"}
+              background={emailColors.cream}
+              labelColor={emailColors.creamLabel}
+            />
+          </Column>
+        </Row>
+      ) : (
+        <Row style={{ marginBottom: "16px" }}>
+          <Column style={{ width: "50%", paddingRight: "5px", verticalAlign: "top" }}>
+            <HighlightCard
+              label="PERIOD"
+              value={periodLabel}
+              background={emailColors.cream}
+              labelColor={emailColors.creamLabel}
+            />
+          </Column>
+          <Column style={{ width: "50%", paddingLeft: "5px", verticalAlign: "top" }}>
+            <HighlightCard
+              label="STATUS"
+              value="Ready to view"
+              background={emailColors.sage}
+              labelColor={emailColors.sageLabel}
+            />
+          </Column>
+        </Row>
+      )}
 
       <EmailBodyText
         style={{ color: "#333333", margin: "0 0 18px" }}
       >
-        Open your portal for the full breakdown, performance, and transaction
-        history.
+        Your full report has the breakdown by portfolio, performance since you
+        started, and recent transactions.
       </EmailBodyText>
 
       <Button href={reportUrl} style={emailButtonStyle}>
@@ -145,11 +205,16 @@ ReportReadyEmail.PreviewProps = {
   periodLabel: "Q2 2026",
   kindTitle: "Quarterly statement",
   asOfLabel: "30 June",
-  reportUrl: "https://example.com/clients/dashboard/documents",
+  reportUrl: "https://example.com/clients/dashboard/reports",
   portalUrl: "https://example.com/clients/dashboard",
   advisorEmail: "hello@jagroup.co",
   advisorName: "your wealth manager",
   clientNumber: "CN000",
+  totalValueUsd: 186413,
+  periodGainUsd: 35413,
+  periodReturnPct: 14.5,
+  sinceStartGainUsd: 35413,
+  sinceStartPct: 24.4,
 } satisfies ReportReadyEmailProps;
 
 export default ReportReadyEmail;

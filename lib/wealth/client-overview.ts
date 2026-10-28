@@ -1,4 +1,4 @@
-import { getClientReports } from "@/lib/api/domain/reports";
+import { getClientReports, type ReportDoc } from "@/lib/api/domain/reports";
 import { getJaPortfolioForClient } from "@/lib/api/domain/wealth-portfolio";
 import { clientGoalToGoal } from "@/lib/wealth/goals";
 import {
@@ -33,12 +33,7 @@ export type ClientOverviewData = {
   nextSession: WmSession | null;
   pendingDocumentRequest: DocumentRequest | null;
   primaryGoal: Goal | null;
-  latestReport: {
-    id: string;
-    name: string;
-    date: string;
-    downloadUrl: string;
-  } | null;
+  latestReport: ReportDoc | null;
 };
 
 export async function getClientOverviewData(
@@ -63,7 +58,7 @@ export async function getClientOverviewData(
     getNextSessionForClient(clientId),
     getFirstPendingDocumentRequest(clientId),
     getClientGoals(clientId),
-    getClientReports(clientId),
+    getClientReports(clientId, { forClient: true }),
   ]);
 
   const portfolioLastUpdated = periods[0]?.period_end
@@ -101,13 +96,6 @@ export async function getClientOverviewData(
     nextSession,
     pendingDocumentRequest,
     primaryGoal: primaryGoalRow ? clientGoalToGoal(primaryGoalRow) : null,
-    latestReport: latestReport
-      ? {
-          id: latestReport.id,
-          name: latestReport.name,
-          date: latestReport.date,
-          downloadUrl: latestReport.downloadUrl,
-        }
-      : null,
+    latestReport: latestReport ?? null,
   };
 }

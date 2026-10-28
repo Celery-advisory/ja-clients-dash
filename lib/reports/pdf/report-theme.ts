@@ -2,521 +2,395 @@ import { StyleSheet } from "@react-pdf/renderer";
 
 export const REPORT_DOCUMENT_TITLE = "Investment Report";
 export const REPORT_COVER_TITLE = "Your Investment Report";
+export const REPORT_TAGLINE = "Prosper With Purpose";
 
-/** Base pages: cover, disclaimer, overview, allocation, transactions, performance x3, back cover */
-export const REPORT_BASE_PAGES = 9;
+/** Base pages: cover, disclaimer, overview, cumulative performance, allocation, transactions, back cover */
+export const REPORT_BASE_PAGES = 7;
 
-export const FIRM_ADDRESS =
-  "WC L, 190 Elgin Avenue, George Town, Grand Cayman, Cayman Islands, KY-1 9008";
+/**
+ * Geometry follows the JA Wealth report template (a 1920 x 1080 slide deck), mapped onto
+ * A4 landscape for print. Horizontal positions scale by page width; vertical positions
+ * and type scale by page height, which keeps body copy at a readable 8.5 to 9.5pt on paper.
+ */
+export const PAGE_WIDTH = 841.89;
+export const PAGE_HEIGHT = 595.28;
 
 export const colors = {
-  navy: "#202356",
-  navyDeep: "#181d42",
+  navy: "#202353",
   gold: "#b2936b",
-  ink: "#1a1a1a",
+  goldLight: "#c5a27e",
+  ink: "#000000",
+  body: "#4a4a4a",
   muted: "#666666",
-  rule: "#e8e4dc",
-  panel: "#f3f1ec",
-  page: "#F8F7F4",
+  stripe: "#f9f6f2",
+  grid: "#e2e2e2",
+  totalFill: "#f0f0f0",
+  rowRule: "#8e8d8b",
+  footerRule: "#989898",
+  coverSubtitle: "#eeeeee",
+  /** Back cover monogram: a few shades under the cover navy, as in the brand pattern artwork. */
+  patternGlyph: "#1c1f4b",
   white: "#ffffff",
 };
 
+/** Playfair Display for titles and figures, Carlito (metric twin of the template's Calibri) for running text. */
 export const fonts = {
   heading: "Playfair Display",
-  body: "Aktiv Grotesk",
+  body: "Carlito",
 };
 
-/** Left rail for client, reference, and client number. Content stays to the right of it. */
-export const PAGE_EDGE_LEFT = 32;
-export const PAGE_EDGE_RIGHT = 34;
-export const PAGE_RAIL_WIDTH = 156;
-export const PAGE_RAIL_GAP = 18;
-export const PAGE_CONTENT_LEFT = PAGE_EDGE_LEFT + PAGE_RAIL_WIDTH + PAGE_RAIL_GAP;
+/** Allocation chart colours from the template, keyed by portfolio bucket. */
+export const REPORT_BUCKET_COLORS = {
+  income: "#5e86b8",
+  growth: "#c5a27e",
+  venture: "#002c64",
+  treasury: "#8b95a7",
+  coa: "#5b9ad1",
+} as const;
+
+export const PAGE_EDGE_LEFT = 25;
+export const CONTENT_LEFT = 205;
+export const CONTENT_RIGHT = 806;
+export const CONTENT_WIDTH = CONTENT_RIGHT - CONTENT_LEFT;
+export const FOOTER_RULE_TOP = 539;
+export const HALF_PAGE = PAGE_WIDTH / 2;
+/** A hair under the page height: the renderer's A4 is 595.276pt, so a full 595.28 photo spills onto a new page. */
+export const PHOTO_HEIGHT = 595.27;
+
+export const TABLE_TEXT_SIZE = 8.7;
+const TABLE_CELL_PAD_X = 6;
 
 export const reportStyles = StyleSheet.create({
   page: {
-    backgroundColor: colors.page,
-    paddingTop: 52,
-    paddingBottom: 56,
-    paddingHorizontal: 40,
+    backgroundColor: colors.white,
+    paddingTop: 37,
+    paddingBottom: PAGE_HEIGHT - FOOTER_RULE_TOP + 16,
+    paddingLeft: CONTENT_LEFT,
+    paddingRight: PAGE_WIDTH - CONTENT_RIGHT,
     fontFamily: fonts.body,
-    fontSize: 9,
+    fontSize: 9.5,
     color: colors.ink,
   },
-  pageLandscape: {
-    backgroundColor: colors.page,
-    paddingTop: 22,
-    paddingBottom: 68,
-    paddingLeft: PAGE_CONTENT_LEFT,
-    paddingRight: PAGE_EDGE_RIGHT,
-    fontFamily: fonts.body,
-    fontSize: 9,
-    color: colors.ink,
-  },
+
+  // Client details in the left margin of every content page
   clientRail: {
     position: "absolute",
-    top: 26,
+    top: 47,
     left: PAGE_EDGE_LEFT,
-    width: PAGE_RAIL_WIDTH,
-    bottom: 58,
+    width: CONTENT_LEFT - PAGE_EDGE_LEFT - 12,
   },
+  railLine: {
+    fontFamily: fonts.body,
+    fontSize: 9.5,
+    lineHeight: 1.63,
+    color: colors.ink,
+  },
+  railLabel: {
+    fontFamily: fonts.heading,
+    fontWeight: 900,
+  },
+
+  pageTitle: {
+    fontFamily: fonts.heading,
+    fontSize: 21,
+    lineHeight: 1.2,
+    color: colors.gold,
+  },
+  titleRule: {
+    borderBottomWidth: 0.7,
+    borderBottomStyle: "dotted",
+    borderBottomColor: colors.goldLight,
+    marginTop: 22,
+  },
+
+  // Footer: rule, "2 | Investment Report", logo
+  footerRule: {
+    position: "absolute",
+    top: FOOTER_RULE_TOP,
+    left: 24,
+    right: PAGE_WIDTH - 818,
+    borderBottomWidth: 0.75,
+    borderBottomColor: colors.footerRule,
+  },
+  footer: {
+    position: "absolute",
+    top: FOOTER_RULE_TOP + 15,
+    left: 24,
+    right: PAGE_WIDTH - 818,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  footerText: {
+    fontFamily: fonts.body,
+    fontSize: 8.3,
+    color: colors.ink,
+  },
+  footerMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 9,
+  },
+  footerDivider: {
+    color: colors.gold,
+  },
+  footerLogo: {
+    width: 76,
+    height: 13.2,
+  },
+
+  // Cover
   coverPage: {
     backgroundColor: colors.navy,
-    padding: 0,
-    fontFamily: fonts.body,
-    flexDirection: "row",
+    fontFamily: fonts.heading,
   },
+  // The split pages place both halves absolutely so neither can push content onto a second sheet.
   coverPhoto: {
-    width: 400,
-    height: 595,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: HALF_PAGE,
+    height: PHOTO_HEIGHT,
     objectFit: "cover",
   },
   coverPanel: {
-    flex: 1,
+    position: "absolute",
+    top: 0,
+    left: HALF_PAGE,
+    right: 0,
+    bottom: 0,
     backgroundColor: colors.navy,
-    paddingLeft: 52,
-    paddingRight: 36,
-    justifyContent: "center",
-    position: "relative",
+    paddingLeft: 474.6 - HALF_PAGE,
+    paddingTop: 170,
   },
+  coverClientName: {
+    fontFamily: fonts.heading,
+    fontSize: 36.5,
+    lineHeight: 1.2,
+    color: colors.goldLight,
+  },
+  coverTitle: {
+    fontFamily: fonts.heading,
+    fontSize: 17.4,
+    color: colors.coverSubtitle,
+    marginTop: 41,
+  },
+  coverDate: {
+    fontFamily: fonts.heading,
+    fontSize: 13.1,
+    color: colors.coverSubtitle,
+    marginTop: 40,
+  },
+  ordinalSuffix: {
+    verticalAlign: "super",
+  },
+  brandMark: {
+    alignItems: "flex-end",
+  },
+  brandTagline: {
+    fontFamily: fonts.body,
+    fontSize: 6,
+    color: colors.goldLight,
+    marginBottom: 2,
+  },
+  coverBrand: {
+    position: "absolute",
+    right: PAGE_WIDTH - 799,
+    top: 512,
+  },
+  coverLogo: {
+    width: 102,
+    height: 17.7,
+  },
+
+  // Back cover: the J.\ monogram tiled edge to edge
   backCoverPage: {
     backgroundColor: colors.navy,
-    paddingHorizontal: 48,
-    fontFamily: fonts.body,
-    position: "relative",
+    justifyContent: "center",
+    alignItems: "center",
   },
   backCoverPattern: {
     position: "absolute",
     top: 0,
     left: 0,
-    right: 0,
-    bottom: 0,
-    opacity: 0.35,
-  },
-  backCoverPatternImage: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-  },
-  backCoverContent: {
-    flex: 1,
-    position: "relative",
-  },
-  backCoverCenter: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  backCoverLogo: {
-    width: 220,
-    height: 40,
-    marginBottom: 28,
   },
   backCoverTagline: {
     fontFamily: fonts.body,
-    fontSize: 11,
-    color: colors.gold,
-    letterSpacing: 2,
-    textTransform: "uppercase",
-    marginBottom: 16,
+    fontSize: 11.5,
+    color: colors.goldLight,
+    marginBottom: 3,
+    marginRight: 8,
   },
-  backCoverRule: {
-    width: 56,
-    height: 2,
-    backgroundColor: colors.gold,
+  backCoverLogo: {
+    width: 242,
+    height: 41.9,
   },
-  backCoverFooter: {
-    position: "absolute",
-    bottom: 36,
-    left: 48,
-    right: 48,
-    alignItems: "center",
-  },
-  backCoverFooterText: {
-    fontFamily: fonts.body,
-    fontSize: 8,
-    color: "rgba(255,255,255,0.65)",
-    lineHeight: 1.5,
-    textAlign: "center",
-  },
-  pageTitle: {
-    fontFamily: fonts.heading,
-    fontSize: 20,
-    color: colors.navy,
-    marginBottom: 14,
-  },
-  pageTitleLandscape: {
-    fontFamily: fonts.heading,
-    fontSize: 22,
-    color: colors.gold,
-    marginTop: 6,
-    marginBottom: 10,
-  },
-  pageHeaderLine: {
-    fontSize: 8,
-    lineHeight: 1.35,
-    color: colors.ink,
-    fontFamily: fonts.body,
-    marginBottom: 1,
-  },
-  pageHeaderLabel: {
-    fontFamily: fonts.body,
-    fontWeight: 700,
-    fontSize: 8,
-    color: colors.ink,
-  },
-  titleRule: {
-    borderBottomWidth: 1,
-    borderBottomStyle: "dotted",
-    borderBottomColor: colors.gold,
-    marginTop: 4,
-    marginBottom: 32,
-  },
-  footerRule: {
-    position: "absolute",
-    bottom: 56,
-    left: PAGE_EDGE_LEFT,
-    right: PAGE_EDGE_RIGHT,
-    borderBottomWidth: 0.6,
-    borderBottomColor: "#1a1a1a",
-  },
-  footerLogo: {
-    width: 86,
-    height: 15,
-  },
-  referenceFooter: {
-    position: "absolute",
-    bottom: 22,
-    left: PAGE_EDGE_LEFT,
-    right: PAGE_EDGE_RIGHT,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  referenceFooterPortrait: {
-    position: "absolute",
-    bottom: 18,
-    left: 40,
-    right: 40,
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-  },
-  referenceFooterMeta: {
-    gap: 2,
-  },
-  referenceFooterLine: {
-    fontSize: 7,
-    color: colors.muted,
-    fontFamily: fonts.body,
-  },
-  referencePageNumber: {
-    fontSize: 8,
-    color: colors.ink,
-    fontFamily: fonts.body,
-  },
-  coverLogo: {
-    position: "absolute",
-    right: 32,
-    bottom: 28,
-    width: 132,
-    height: 23,
-  },
-  coverClientName: {
-    fontFamily: fonts.heading,
-    fontSize: 28,
-    color: colors.gold,
-    marginBottom: 18,
-  },
-  coverTitle: {
-    fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.white,
-    marginBottom: 26,
-  },
-  coverDate: {
-    fontFamily: fonts.body,
-    fontSize: 11,
-    color: colors.white,
-  },
-  level1: {
-    fontFamily: fonts.heading,
-    fontSize: 22,
-    color: colors.navy,
-    marginBottom: 4,
-  },
-  level2: {
-    fontFamily: fonts.heading,
-    fontSize: 14,
-    color: colors.navy,
-    marginTop: 4,
-    marginBottom: 8,
-    paddingBottom: 4,
-    borderBottomWidth: 0.75,
-    borderBottomColor: colors.gold,
-  },
-  level3: {
-    fontFamily: fonts.body,
-    fontSize: 9,
-    fontWeight: 600,
-    color: colors.navy,
-    marginTop: 10,
-    marginBottom: 6,
-  },
-  bodyText: {
-    fontFamily: fonts.body,
-    fontSize: 9,
-    lineHeight: 1.55,
-    color: "#444444",
-  },
-  muted: {
-    fontFamily: fonts.body,
-    fontSize: 8,
-    color: colors.muted,
-    lineHeight: 1.45,
-  },
-  kpiBand: {
-    flexDirection: "row",
-    backgroundColor: colors.panel,
-    borderLeftWidth: 2,
-    borderLeftColor: colors.gold,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    marginTop: 12,
-    marginBottom: 14,
-    gap: 8,
-  },
-  kpiCell: {
-    flex: 1,
-  },
-  kpiLabel: {
-    fontSize: 6.5,
-    fontFamily: fonts.body,
-    fontWeight: 500,
-    color: colors.muted,
-    letterSpacing: 0.9,
-    textTransform: "uppercase",
-    marginBottom: 4,
-  },
-  kpiValue: {
-    fontSize: 15,
-    fontFamily: fonts.body,
-    fontWeight: 600,
-    color: colors.navy,
-  },
-  detailGrid: {
-    flexDirection: "row",
-    gap: 20,
-    marginBottom: 12,
-  },
-  detailCol: {
-    flex: 1,
-  },
-  detailLabel: {
-    fontSize: 6.5,
-    fontFamily: fonts.body,
-    fontWeight: 500,
-    color: colors.gold,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-    marginBottom: 2,
-  },
-  detailValue: {
-    fontSize: 9,
-    fontFamily: fonts.body,
-    color: "#333333",
-    marginBottom: 6,
-  },
+
+  // Tables share one grid: white header, Playfair figures, light vertical rules
   table: {
-    marginBottom: 10,
+    marginTop: 16,
   },
-  tableHeader: {
+  tableHeaderRow: {
     flexDirection: "row",
-    backgroundColor: colors.navy,
-    paddingVertical: 7,
-    paddingHorizontal: 8,
+    alignItems: "center",
+    minHeight: 59,
+    borderBottomWidth: 0.6,
+    borderBottomColor: colors.grid,
   },
-  tableHeaderText: {
-    fontSize: 7,
-    fontFamily: fonts.body,
-    fontWeight: 500,
-    color: colors.white,
-    letterSpacing: 0.3,
-  },
-  tableHeaderTextLandscape: {
-    fontSize: 7.5,
-    fontFamily: fonts.body,
-    fontWeight: 500,
-    color: colors.white,
-    letterSpacing: 0.3,
+  tableHeaderCell: {
+    fontFamily: fonts.heading,
+    fontWeight: 900,
+    fontSize: TABLE_TEXT_SIZE,
+    lineHeight: 1.45,
+    color: colors.ink,
+    paddingHorizontal: TABLE_CELL_PAD_X,
   },
   tableRow: {
     flexDirection: "row",
-    paddingVertical: 7,
-    paddingHorizontal: 8,
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.rule,
+    alignItems: "stretch",
+    borderBottomWidth: 0.6,
+    borderBottomColor: colors.grid,
   },
-  tableRowAlt: {
-    backgroundColor: "rgba(255,255,255,0.55)",
+  tableRowLast: {
+    borderBottomWidth: 0,
+  },
+  tableRowStriped: {
+    backgroundColor: colors.stripe,
+  },
+  tableRowTotalFill: {
+    backgroundColor: colors.totalFill,
   },
   tableCell: {
-    fontSize: 8,
-    fontFamily: fonts.body,
-    color: "#333333",
-  },
-  tableCellLandscape: {
-    fontSize: 8.5,
-    fontFamily: fonts.body,
-    color: "#333333",
-  },
-  tableCellRight: {
-    fontSize: 8,
-    fontFamily: fonts.body,
-    fontWeight: 600,
-    textAlign: "right",
-    color: colors.ink,
-  },
-  tableCellRightLandscape: {
-    fontSize: 8.5,
-    fontFamily: fonts.body,
-    fontWeight: 600,
-    textAlign: "right",
-    color: colors.ink,
-  },
-  tableTotal: {
-    flexDirection: "row",
-    backgroundColor: colors.panel,
-    borderTopWidth: 1,
-    borderTopColor: colors.gold,
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-  },
-  tableTotalText: {
-    fontSize: 8,
-    fontFamily: fonts.body,
-    fontWeight: 600,
-    color: colors.navy,
-  },
-  tableTotalTextLandscape: {
-    fontSize: 8.5,
-    fontFamily: fonts.body,
-    fontWeight: 600,
-    color: colors.navy,
-  },
-  chartBox: {
-    marginBottom: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    borderWidth: 0.5,
-    borderColor: colors.rule,
-    backgroundColor: colors.white,
-  },
-  chartBoxLandscape: {
-    marginTop: 8,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderWidth: 0.5,
-    borderColor: colors.rule,
-    backgroundColor: colors.white,
-    alignItems: "center",
-  },
-  allocationPage: {
-    alignItems: "center",
     justifyContent: "center",
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingHorizontal: TABLE_CELL_PAD_X,
+    borderLeftWidth: 0.6,
+    borderLeftColor: colors.grid,
   },
-  allocationSplitPage: {
-    flexDirection: "row",
-    backgroundColor: colors.white,
-    padding: 0,
-    fontFamily: fonts.body,
+  tableCellFirst: {
+    borderLeftWidth: 0,
   },
-  allocationPhoto: {
-    width: 400,
-    height: 595,
-    objectFit: "cover",
+  tableCellText: {
+    fontFamily: fonts.heading,
+    fontSize: TABLE_TEXT_SIZE,
+    color: colors.ink,
   },
-  allocationPanel: {
-    flex: 1,
-    paddingTop: 40,
-    paddingHorizontal: 28,
-    paddingBottom: 68,
-    position: "relative",
-  },
-  allocationFooterRule: {
-    position: "absolute",
-    bottom: 56,
-    left: 28,
-    right: 28,
-    borderBottomWidth: 0.6,
-    borderBottomColor: "#1a1a1a",
-  },
-  allocationFooter: {
-    position: "absolute",
-    bottom: 22,
-    left: 28,
-    right: 28,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  chartCaption: {
-    fontSize: 7,
-    color: colors.muted,
-    marginBottom: 4,
-    fontFamily: fonts.body,
-  },
-  chartAxisLabel: {
-    fontSize: 6.5,
-    color: colors.muted,
-    fontFamily: fonts.body,
+  tableCellTextBold: {
+    fontFamily: fonts.heading,
+    fontWeight: 900,
+    fontSize: TABLE_TEXT_SIZE,
+    color: colors.ink,
   },
   footnote: {
-    fontSize: 7,
-    color: colors.muted,
-    marginTop: 6,
-    lineHeight: 1.4,
-    fontFamily: fonts.body,
-    fontStyle: "italic",
-  },
-  bulletRow: {
-    flexDirection: "row",
-    gap: 6,
-    marginBottom: 5,
-  },
-  bulletDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.gold,
-    marginTop: 4,
-  },
-  emptyRow: {
-    fontSize: 8,
-    color: colors.muted,
-    fontFamily: fonts.body,
-    paddingVertical: 6,
-  },
-  disclaimerColumn: {
-    paddingTop: 22,
-  },
-  disclaimerTitle: {
-    fontFamily: fonts.body,
-    fontWeight: 400,
+    fontFamily: fonts.heading,
     fontSize: 9.5,
     color: colors.ink,
-    marginBottom: 20,
+    marginTop: 12,
+  },
+  emptyRow: {
+    fontFamily: fonts.body,
+    fontSize: 9.5,
+    color: colors.muted,
+    paddingVertical: 8,
+  },
+
+  // Recent transactions use a ruled list rather than the grid
+  ledgerHeaderRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    paddingBottom: 9,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.ink,
+  },
+  ledgerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    minHeight: 43.8,
+    backgroundColor: colors.stripe,
+    borderBottomWidth: 0.75,
+    borderBottomColor: colors.rowRule,
+  },
+  ledgerCell: {
+    paddingHorizontal: TABLE_CELL_PAD_X,
+  },
+  ledgerCellText: {
+    fontFamily: fonts.body,
+    fontSize: TABLE_TEXT_SIZE,
+    color: colors.ink,
+  },
+
+  // Disclaimer
+  disclaimerIntro: {
+    fontFamily: fonts.body,
+    fontSize: 9,
+    color: colors.body,
+    marginTop: 22,
+    marginBottom: 14,
   },
   disclaimerParagraph: {
     fontFamily: fonts.body,
-    fontSize: 9.5,
-    lineHeight: 1.48,
-    color: "#222222",
-    marginBottom: 14,
-    textAlign: "justify",
+    fontSize: 9,
+    lineHeight: 1.85,
+    color: colors.body,
+    marginBottom: 12,
+    width: 573,
   },
+
+  // Allocation: photo on the left, chart panel on the right
+  allocationPage: {
+    backgroundColor: colors.white,
+    fontFamily: fonts.body,
+  },
+  allocationPhoto: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: HALF_PAGE,
+    height: PHOTO_HEIGHT,
+    objectFit: "cover",
+  },
+  allocationPanel: {
+    position: "absolute",
+    top: 0,
+    left: HALF_PAGE,
+    right: 0,
+    bottom: 0,
+    paddingTop: 49,
+  },
+  allocationTitle: {
+    fontFamily: fonts.heading,
+    fontSize: 33,
+    lineHeight: 1.2,
+    color: colors.gold,
+    textAlign: "center",
+  },
+  allocationRule: {
+    borderBottomWidth: 0.7,
+    borderBottomStyle: "dotted",
+    borderBottomColor: colors.goldLight,
+    marginTop: 15,
+    marginRight: PAGE_WIDTH - 816,
+  },
+  allocationFooterRule: {
+    position: "absolute",
+    top: FOOTER_RULE_TOP,
+    left: 0,
+    right: PAGE_WIDTH - 818,
+    borderBottomWidth: 0.75,
+    borderBottomColor: colors.footerRule,
+  },
+  allocationFooterLogo: {
+    position: "absolute",
+    top: FOOTER_RULE_TOP + 15,
+    right: PAGE_WIDTH - 818,
+    width: 76,
+    height: 13.2,
+  },
+  legendText: {
+    fontFamily: fonts.body,
+    fontSize: 9.5,
+    color: colors.ink,
+  },
+
 });
 
 export function computeReportTotalPages(holdingsPageCount: number): number {

@@ -53,13 +53,6 @@ import type {
 } from "@/lib/wealth/wm-types";
 import { cn } from "@/lib/utils";
 
-const BUCKET_TINT: Record<PortfolioBucket, string> = {
-  income: "bg-[#b2936b]/12",
-  growth: "bg-[#202356]/10",
-  venture: "bg-[#829850]/12",
-  treasury: "bg-[#484848]/10",
-  coa: "bg-[#c4b5a0]/20",
-};
 
 function greetingForHour(hour: number) {
   if (hour < 12) return "Good morning";
@@ -191,8 +184,15 @@ export function AdvisorOverview({
   const sortedClients = [...clients].sort((a, b) => b.aum - a.aum);
   const clientPage = usePagedRows(sortedClients);
   const chartData = aumHistory.map((p) => ({ month: p.month, value: p.value }));
-  const latestHistoryValue =
-    aumHistory.length > 0 ? aumHistory[aumHistory.length - 1]!.value : totalAum;
+  const firstHistory = aumHistory[0];
+  const lastHistory = aumHistory[aumHistory.length - 1];
+  // The headline card already shows today's total, so the chart describes the change it plots.
+  const aumChangeLabel =
+    firstHistory && lastHistory && aumHistory.length > 1 && firstHistory.value > 0
+      ? `${lastHistory.value >= firstHistory.value ? "Up" : "Down"} ${formatUsd(
+          Math.abs(lastHistory.value - firstHistory.value),
+        )} (${formatReturn(((lastHistory.value - firstHistory.value) / firstHistory.value) * 100)}) since ${firstHistory.month}`
+      : "Book value by statement month";
   const ytdPositive = ytdPct != null && ytdPct >= 0;
 
   return (
@@ -221,7 +221,7 @@ export function AdvisorOverview({
         }
       />
 
-      {/* Soft tinted metric cards */}
+      {/* Book metrics */}
       <section
         aria-label="Book metrics"
         className="grid grid-cols-2 gap-2.5 xl:grid-cols-4"
@@ -268,10 +268,10 @@ export function AdvisorOverview({
         <SurfaceCard>
           <AdvisorSectionHeader
             title="AUM over time"
-            subtitle={`Current book value ${formatUsd(latestHistoryValue || totalAum)}`}
+            subtitle={aumChangeLabel}
             className="mb-2.5"
           />
-          <BookAumChart data={chartData} height={180} />
+          <BookAumChart data={chartData} height={250} />
         </SurfaceCard>
 
         <SurfaceCard>
@@ -280,29 +280,25 @@ export function AdvisorOverview({
             subtitle="Five portfolios across the book"
             className="mb-2.5"
           />
-          <ul className="flex flex-col gap-1.5">
+          <ul className="flex flex-col divide-y divide-border/70">
             {allocation.map((slice) => (
-              <li
-                key={slice.bucket}
-                className={cn(
-                  "flex items-center gap-2.5 rounded-lg px-2.5 py-2",
-                  BUCKET_TINT[slice.bucket],
-                )}
-              >
+              <li key={slice.bucket} className="flex items-center gap-3 py-3 first:pt-1">
                 <span
-                  className="flex size-6 shrink-0 items-center justify-center rounded-md bg-white/70"
+                  className="size-2.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: BUCKET_COLORS[slice.bucket] }}
                   aria-hidden
-                >
-                  <span
-                    className="size-2 rounded-full"
-                    style={{ backgroundColor: BUCKET_COLORS[slice.bucket] }}
-                  />
-                </span>
+                />
                 <div className="min-w-0 flex-1">
-                  <TextSmall className="text-[12px] font-medium">
-                    {slice.shortLabel}
-                  </TextSmall>
-                  <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-white/70">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <TextSmall className="text-[13px] font-medium">{slice.shortLabel}</TextSmall>
+                    <span className="font-numeric text-[13px] font-medium tabular-nums">
+                      {formatCompactAum(slice.value)}
+                      <span className="ml-2 inline-block w-11 text-right text-[12px] font-normal text-muted-foreground">
+                        {slice.pct.toFixed(1)}%
+                      </span>
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-muted">
                     <div
                       className="h-full rounded-full"
                       style={{
@@ -311,14 +307,6 @@ export function AdvisorOverview({
                       }}
                     />
                   </div>
-                </div>
-                <div className="shrink-0 text-right">
-                  <TextSmall className="text-[12px] font-numeric font-medium tabular-nums">
-                    {formatCompactAum(slice.value)}
-                  </TextSmall>
-                  <Muted className="text-[10px] font-numeric tabular-nums">
-                    {slice.pct.toFixed(1)}%
-                  </Muted>
                 </div>
               </li>
             ))}

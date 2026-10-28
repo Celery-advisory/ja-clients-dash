@@ -105,4 +105,6 @@ export interface InvestmentReportData {
   disclaimerBody: string;
   includedSections: ReportSectionKey[];
   totalPages: number;
+  /** Cover photo bytes or path; the bundled skyline is used when absent. */
+  coverImageSrc?: string | { data: Buffer; format: "jpg" | "png" };
 }

@@ -178,12 +178,7 @@ export function ClientOverviewTab({
     <div className="flex flex-col gap-8 pb-16">
       <section className="flex flex-col gap-3">
         <SectionLabel>Client snapshot</SectionLabel>
-        <div className="grid grid-cols-1 divide-y divide-border/70 overflow-hidden rounded-(--radius-card) border border-border/60 bg-card sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-          <SnapshotCell
-            label="Portfolio value"
-            value={formatUsd(totalValue)}
-            hint={hasStatement ? "Latest statement total" : "No data yet"}
-          />
+        <div className="grid grid-cols-1 divide-y divide-border/70 overflow-hidden rounded-(--radius-card) border border-border/60 bg-card sm:grid-cols-2 sm:divide-x sm:divide-y-0">
           <SnapshotCell
             label="Next review"
             value={

@@ -9,6 +9,7 @@ import {
 } from "@/components/advisors/advisor-surface";
 import { PageShell } from "@/components/layout/page-shell";
 import { AdvisorReportsList } from "@/components/reports/advisor-reports-list";
+import { CoverImagePicker } from "@/components/reports/cover-image-picker";
 import { GenerateReportButton } from "@/components/reports/generate-report-button";
 import { GenerateReportsGuide } from "@/components/reports/generate-reports-guide";
 import { OutstandingReportsNotice } from "@/components/reports/outstanding-reports-notice";
@@ -19,6 +20,15 @@ import { Muted, TextSmall } from "@/components/ui/typography";
 export default function AdvisorReportsPage() {
   const [clientOptions, setClientOptions] = useState<{ id: string; name: string }[]>([]);
   const [clientId, setClientId] = useState("");
+  const [coverImageId, setCoverImageId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/me")
+      .then((res) => res.json())
+      .then((data) => setIsAdmin(data.role === "admin"))
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     fetch("/api/clients")
@@ -38,7 +48,7 @@ export default function AdvisorReportsPage() {
     <PageShell className={advisorSurface.pageGap}>
       <AdvisorPageHeader
         title="Reports"
-        description="Reports are created only when you click Generate. That PDF then appears in the client portal."
+        description="Generate a report, check the draft, then publish. Clients only see a report after you publish it."
       />
 
       <OutstandingReportsNotice />
@@ -47,7 +57,7 @@ export default function AdvisorReportsPage() {
         <div className="mb-3">
           <TextSmall className="font-semibold">Generate a statement</TextSmall>
           <Muted className="text-[12px]">
-            Choose a client, then generate. Nothing is sent to their portal until you do.
+            Choose a client and a cover, then generate. The report is saved as a draft for you to check.
           </Muted>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -66,12 +76,19 @@ export default function AdvisorReportsPage() {
               ))}
             </Select>
           </div>
-          <GenerateReportButton clientId={clientId} />
+          <GenerateReportButton clientId={clientId} coverImageId={coverImageId} />
+        </div>
+        <div className="mt-5 border-t border-border/70 pt-4">
+          <CoverImagePicker
+            value={coverImageId}
+            onChange={setCoverImageId}
+            canManage={isAdmin}
+          />
         </div>
       </SurfaceCard>
 
-      <GenerateReportsGuide />
       <AdvisorReportsList />
+      <GenerateReportsGuide />
     </PageShell>
   );
 }

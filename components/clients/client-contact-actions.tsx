@@ -23,7 +23,7 @@ export function ClientContactActions({
         href={messages}
         className={cn(
           buttonVariants({ size: "sm" }),
-          "h-8 bg-[#0a1f3d] text-white hover:bg-[#0a1f3d]/90",
+          "h-8 bg-brand-primary text-white hover:bg-brand-primary/90",
           primaryClassName,
         )}
       >

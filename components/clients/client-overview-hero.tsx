@@ -29,8 +29,8 @@ export function ClientOverviewHero({
   }
 
   return (
-    <div className="rounded-2xl bg-[#0a1f3d] px-5 py-5 text-white sm:px-6 sm:py-6">
-      <p className="text-xs font-medium tracking-wide text-[#c9a227]">
+    <div className="rounded-2xl bg-brand-primary px-5 py-5 text-white sm:px-6 sm:py-6">
+      <p className="text-xs font-medium tracking-wide text-brand-accent">
         TOTAL PORTFOLIO VALUE
       </p>
       <div className="mt-1 flex flex-wrap items-baseline gap-2 sm:gap-3">
@@ -38,14 +38,14 @@ export function ClientOverviewHero({
         <span
           className={cn(
             "font-numeric text-sm",
-            ytdPct >= 0 ? "text-[#8fd19e]" : "text-red-300",
+            ytdPct >= 0 ? "text-emerald-300" : "text-red-300",
           )}
         >
           {ytdPct >= 0 ? "+" : ""}
           {ytdPct.toFixed(1)}% YTD
         </span>
       </div>
-      <p className="mt-2 text-xs text-[#b9c3d4]">
+      <p className="mt-2 text-xs text-white/70">
         {periodGainUsd >= 0 ? "Up" : "Down"} {format(Math.abs(periodGainUsd))} this period
       </p>
     </div>
@@ -54,19 +54,19 @@ export function ClientOverviewHero({
 
 export function ClientOverviewEmptyHero() {
   return (
-    <div className="rounded-2xl bg-[#0a1f3d] px-5 py-5 text-white sm:px-6 sm:py-6">
-      <p className="text-xs font-medium tracking-wide text-[#c9a227]">
+    <div className="rounded-2xl bg-brand-primary px-5 py-5 text-white sm:px-6 sm:py-6">
+      <p className="text-xs font-medium tracking-wide text-brand-accent">
         TOTAL PORTFOLIO VALUE
       </p>
       <p className="mt-3 text-lg font-medium">Your portfolio is not set up yet</p>
-      <p className="mt-1 max-w-lg text-sm leading-relaxed text-[#b9c3d4]">
+      <p className="mt-1 max-w-lg text-sm leading-relaxed text-white/70">
         Get in touch with us or your wealth manager and we will add your holdings, values, and
         performance here.
       </p>
       <ClientContactActions
         className="mt-4"
         onDark
-        primaryClassName="bg-[#c9a227] text-[#0a1f3d] hover:bg-[#c9a227]/90"
+        primaryClassName="bg-brand-accent text-brand-primary hover:bg-brand-accent/90"
       />
     </div>
   );

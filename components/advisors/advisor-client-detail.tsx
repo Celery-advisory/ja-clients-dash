@@ -392,7 +392,7 @@ export function AdvisorClientDetail() {
       </header>
 
       <div className="sticky top-14 z-10 -mx-4 border-b border-border/70 bg-background/90 px-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
-        <nav className="flex min-w-max gap-5 overflow-x-auto">
+        <nav className="flex gap-5 overflow-x-auto [scrollbar-width:none] [&>*]:shrink-0">
           {visibleTabs.map((tab) => {
             const active = activeTab === tab;
             return (

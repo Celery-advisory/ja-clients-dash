@@ -8,37 +8,25 @@ import { cn } from "@/lib/utils";
 /** Shared advisor portal surfaces. Keep Overview and other pages on one system. */
 
 export const advisorSurface = {
-  card: "rounded-xl border border-border/70 bg-card shadow-[0_1px_2px_rgba(32,35,86,0.04)]",
+  card: "rounded-xl border border-border bg-card shadow-[0_1px_2px_rgba(28,25,25,0.03)]",
   cardPadding: "p-3.5 sm:p-4",
   pageGap: "flex flex-col gap-4 md:gap-5 py-5 md:py-6",
-  sectionTitle:
-    "font-heading text-[1.05rem] font-semibold tracking-tight text-brand-primary",
-  pageTitle: "text-[1.5rem] text-brand-primary sm:text-[1.65rem]",
+  sectionTitle: "font-heading text-[1.2rem] font-medium text-brand-primary",
+  pageTitle: "text-[1.75rem] text-brand-primary sm:text-[2rem]",
   pageSubtitle: "mt-0.5 max-w-2xl text-[13px]",
 } as const;
 
 export type MetricTone = "navy" | "gold" | "sage" | "warm";
 
+/** Summary cards share one white surface; tone only tints the small icon, so no card shouts. */
 export const METRIC_TONES: Record<
   MetricTone,
   { card: string; icon: string }
 > = {
-  navy: {
-    card: "bg-[#eef0f7] border-[#d9dde9]",
-    icon: "bg-[#202356]/12 text-brand-primary",
-  },
-  gold: {
-    card: "bg-[#f7f1e8] border-[#e8dcc8]",
-    icon: "bg-[#b2936b]/25 text-[#8a6f45]",
-  },
-  sage: {
-    card: "bg-[#eef3ea] border-[#d7e2cf]",
-    icon: "bg-[#829850]/20 text-[#5f7340]",
-  },
-  warm: {
-    card: "bg-[#f8efe9] border-[#ead9cc]",
-    icon: "bg-[#c45c57]/12 text-[#a34844]",
-  },
+  navy: { card: "bg-card border-border", icon: "text-brand-primary/70" },
+  gold: { card: "bg-card border-border", icon: "text-brand-accent" },
+  sage: { card: "bg-card border-border", icon: "text-[#5f7340]" },
+  warm: { card: "bg-card border-border", icon: "text-[#a34844]" },
 };
 
 export function SurfaceCard({
@@ -136,36 +124,31 @@ export function MetricCard({
   const content = (
     <>
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+        <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
           {label}
         </p>
         {icon ? (
-          <span
-            className={cn(
-              "flex size-6 shrink-0 items-center justify-center rounded-md",
-              tones.icon,
-            )}
-          >
+          <span className={cn("flex size-5 shrink-0 items-center justify-center", tones.icon)}>
             {icon}
           </span>
         ) : null}
       </div>
       <p
         className={cn(
-          "font-numeric text-[1.2rem] font-semibold tracking-tight tabular-nums text-brand-primary sm:text-[1.3rem]",
+          "mt-1 font-display text-[1.6rem] font-medium leading-tight tabular-nums text-brand-primary sm:text-[1.75rem]",
           valueClassName,
         )}
       >
         {value}
       </p>
-      {detail ? <p className="text-[11px] text-muted-foreground">{detail}</p> : null}
+      {detail ? <p className="text-xs text-muted-foreground">{detail}</p> : null}
     </>
   );
 
   const className = cn(
-    "relative flex flex-col gap-1 rounded-xl border px-3.5 py-3 shadow-[0_1px_2px_rgba(32,35,86,0.03)]",
+    "relative flex flex-col gap-1 rounded-xl border px-4 py-4 shadow-[0_1px_2px_rgba(28,25,25,0.03)]",
     tones.card,
-    href && "transition-opacity hover:opacity-90",
+    href && "transition-colors hover:border-brand-accent/60",
   );
 
   if (href) {

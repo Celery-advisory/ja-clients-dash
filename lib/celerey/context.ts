@@ -115,7 +115,8 @@ async function buildClientDossier(
       getJaPortfolioForClient(clientId),
       getTransactionsForClient(clientId, 12),
       getUpdatesForClient(clientId, 8),
-      getReportsForClient(clientId),
+      // A client's own assistant must not know about reports still in draft.
+      getReportsForClient(clientId, { publishedOnly: !options.includeAdvisorNotes }),
       client.advisor_id ? getAdvisorById(client.advisor_id) : Promise.resolve(null),
     ]);
 
