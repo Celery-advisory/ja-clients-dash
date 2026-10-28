@@ -2,17 +2,14 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useFormStatus } from "react-dom";
+import { useEffect, useState } from "react";
 
-import { sendLoginOtp } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { H2 } from "@/components/ui/typography";
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
-
+function SubmitButton({ pending }: { pending: boolean }) {
   return (
     <Button
       type="submit"
@@ -30,6 +27,16 @@ export default function LoginForm() {
   const email = searchParams.get("email") ?? "";
   const next = searchParams.get("next") ?? "";
   const isRateLimited = error?.toLowerCase().includes("too many") ?? false;
+  const [pending, setPending] = useState(false);
+
+  // Coming back with the browser's Back button restores this page from cache; re-enable the button.
+  useEffect(() => {
+    const reset = (event: PageTransitionEvent) => {
+      if (event.persisted) setPending(false);
+    };
+    window.addEventListener("pageshow", reset);
+    return () => window.removeEventListener("pageshow", reset);
+  }, []);
 
   return (
     <div className="flex w-full max-w-sm flex-col gap-8">
@@ -52,7 +59,13 @@ export default function LoginForm() {
         )}
       </div>
 
-      <form className="flex flex-col gap-4" action={sendLoginOtp}>
+      {/* A plain POST (not a server action) so browsers save the email for autofill. */}
+      <form
+        className="flex flex-col gap-4"
+        method="post"
+        action="/auth/send-code"
+        onSubmit={() => setPending(true)}
+      >
         {next ? <input type="hidden" name="next" value={next} /> : null}
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="email" className="text-white/80">
@@ -65,12 +78,17 @@ export default function LoginForm() {
             defaultValue={email}
             placeholder="you@example.com"
             autoComplete="email"
+            inputMode="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            autoFocus={!email}
             required
             className="border-white/20 bg-white/10 text-white placeholder:text-white/40 focus-visible:border-white/50 focus-visible:ring-white/20"
           />
         </div>
 
-        <SubmitButton />
+        <SubmitButton pending={pending} />
       </form>
 
       {email && (

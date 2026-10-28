@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { resendLoginOtp, verifyLoginOtp } from "@/app/auth/actions";
@@ -49,6 +49,15 @@ export default function VerifyPageClient() {
   const error = searchParams.get("error");
   const resent = searchParams.get("resent");
   const [token, setToken] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
+  const codeRef = useRef<HTMLInputElement>(null);
+
+  // The field mounts after the page hydrates and the code input sets itself up on the next
+  // tick, so focus it once that has settled; the autoFocus attribute alone does not take.
+  useEffect(() => {
+    const timer = window.setTimeout(() => codeRef.current?.focus(), 60);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   return (
     <div className="flex w-full max-w-sm flex-col gap-8">
@@ -72,7 +81,7 @@ export default function VerifyPageClient() {
         )}
       </div>
 
-      <form action={verifyLoginOtp} className="flex flex-col gap-6">
+      <form ref={formRef} action={verifyLoginOtp} className="flex flex-col gap-6">
         <input type="hidden" name="email" value={email} />
         {next ? <input type="hidden" name="next" value={next} /> : null}
         <input type="hidden" name="token" value={token} />
@@ -81,6 +90,10 @@ export default function VerifyPageClient() {
           maxLength={6}
           value={token}
           onChange={setToken}
+          // Submit as soon as the sixth digit lands (typed, pasted or autofilled), after the
+          // hidden token field has picked up the new value.
+          onComplete={() => setTimeout(() => formRef.current?.requestSubmit(), 0)}
+          ref={codeRef}
           containerClassName="justify-start gap-2"
         >
           <InputOTPGroup className="gap-2">
