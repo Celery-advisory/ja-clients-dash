@@ -62,6 +62,7 @@ function portalStatusLabel(advisor: AdvisorListRow) {
 
 function AdvisorRowMenu({
   advisor,
+  isAdmin,
   isSuperadmin,
   saving,
   onInvite,
@@ -69,6 +70,7 @@ function AdvisorRowMenu({
   onToggleActive,
 }: {
   advisor: AdvisorListRow;
+  isAdmin: boolean;
   isSuperadmin: boolean;
   saving: SavingState;
   onInvite: () => void;
@@ -77,7 +79,7 @@ function AdvisorRowMenu({
 }) {
   const busy = saving?.id === advisor.id;
   const canManageAdmin = isSuperadmin && !advisor.is_superadmin;
-  const canToggleActive = !advisor.is_superadmin;
+  const canToggleActive = isAdmin && !advisor.is_superadmin;
 
   return (
     <DropdownMenu>
@@ -134,9 +136,11 @@ function AdvisorRowMenu({
 
 export function TeamWorkspace({
   currentAdvisorId,
+  isAdmin,
   isSuperadmin,
 }: {
   currentAdvisorId: string | null;
+  isAdmin: boolean;
   isSuperadmin: boolean;
 }) {
   const [advisors, setAdvisors] = useState<AdvisorListRow[]>([]);
@@ -448,6 +452,7 @@ export function TeamWorkspace({
               <div className="flex shrink-0">
                 <AdvisorRowMenu
                   advisor={advisor}
+                  isAdmin={isAdmin}
                   isSuperadmin={isSuperadmin}
                   saving={saving}
                   onInvite={() => sendInvite(advisor)}

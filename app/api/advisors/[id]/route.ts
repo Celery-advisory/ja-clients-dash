@@ -22,6 +22,32 @@ export async function PATCH(
 
   const body = await request.json().catch(() => ({}));
   const callerIsSuperAdmin = session.profile.is_superadmin;
+  const editingSelf = id === session.profile.advisor_id;
+
+  if (!editingSelf && session.profile.role !== "admin") {
+    return NextResponse.json(
+      { error: "Only admins can change other team members" },
+      { status: 403 },
+    );
+  }
+
+  if (editingSelf && session.profile.role !== "admin" && typeof body.isActive === "boolean") {
+    return NextResponse.json(
+      { error: "Only admins can change account status" },
+      { status: 403 },
+    );
+  }
+
+  // Sign-in is by email, so changing an admin's email would hand over their access.
+  const changingEmail =
+    body.email !== undefined &&
+    String(body.email).trim().toLowerCase() !== existing.email.trim().toLowerCase();
+  if (changingEmail && existing.is_admin && !editingSelf && !callerIsSuperAdmin) {
+    return NextResponse.json(
+      { error: "Only the platform superadmin can change an admin's email" },
+      { status: 403 },
+    );
+  }
 
   if (existing.is_superadmin && !callerIsSuperAdmin) {
     return NextResponse.json(

@@ -6,27 +6,14 @@ import {
 } from "@/lib/reports/assemble-demo-report";
 import { generateInvestmentReportPdf } from "@/lib/reports/generate-pdf";
 import { resolveReportClientId } from "@/lib/reports/resolve-report-client";
-import { getUserProfile } from "@/lib/reports/service";
 import { ALL_BUCKETS } from "@/lib/wealth/constants";
 import {
   getLatestPeriodForClient,
   getStatementPeriod,
   upsertSnapshots,
 } from "@/lib/wealth/queries";
-import { createClient } from "@/lib/supabase/server";
-
-async function requireSignedIn() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-  const profile = await getUserProfile(user.id);
-  if (!profile) {
-    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 403 }) };
-  }
-  return { user };
-}
+import { isAdvisorRole } from "@/lib/auth/dashboard-routes";
+import { canAccessClient, getAdvisorApiSession, getApiSession } from "@/lib/wealth/session";
 
 function pdfResponse(buffer: Buffer, reference: string) {
   const fileName = `${reference.replace(/\//g, "-")}.pdf`;
@@ -87,13 +74,17 @@ async function generateFromDatabase(
 }
 
 export async function GET(request: Request) {
-  const auth = await requireSignedIn();
-  if (auth.error) return auth.error;
+  const session = await getApiSession();
+  if (!session.ok) return session.response;
 
   const clientId = new URL(request.url).searchParams.get("clientId") ?? "john-doe";
   try {
     const dbClientId = await resolveReportClientId(clientId);
-    if (dbClientId) {
+    // Clients only get live data for their own account; anything else falls back to the static sample.
+    const canUseDatabase =
+      dbClientId !== null &&
+      (isAdvisorRole(session.profile.role) || canAccessClient(session.profile, dbClientId));
+    if (canUseDatabase) {
       const { buffer, data } = await generateFromDatabase(clientId);
       return pdfResponse(buffer, data.reference);
     }
@@ -109,8 +100,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireSignedIn();
-  if (auth.error) return auth.error;
+  // POST can overwrite stored snapshots, so it is limited to the advisory team.
+  const session = await getAdvisorApiSession();
+  if (!session.ok) return session.response;
 
   try {
     const body = await request.json().catch(() => ({}));

@@ -14,6 +14,7 @@ export default async function AdvisorTeamPage() {
       />
       <TeamWorkspace
         currentAdvisorId={session.profile.advisor_id}
+        isAdmin={session.profile.role === "admin"}
         isSuperadmin={session.profile.is_superadmin}
       />
     </PageShell>
