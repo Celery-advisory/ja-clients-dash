@@ -19,7 +19,7 @@ SUPABASE_DB_PASSWORD=your_db_password
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 RESEND_API_KEY=re_...
-RESEND_FROM_EMAIL=JA Wealth <noreply@no-reply.celerey.co>
+RESEND_FROM_DOMAIN=no-reply.jagroup.co
 ```
 
 Get the service role key from [Project Settings → API](https://supabase.com/dashboard/project/mmubhwyxszonhnpyeosy/settings/api). Server only, never expose to the browser.
@@ -41,7 +41,16 @@ CREATE TABLE IF NOT EXISTS wealth.login_otps (
 
 ## Resend domain
 
-Verify `no-reply.celerey.co` in [Resend Domains](https://resend.com/domains) so `noreply@no-reply.celerey.co` can send.
+Verify `no-reply.jagroup.co` in [Resend Domains](https://resend.com/domains). Once it shows Verified, any mailbox on it can send, and the app uses one per email type (see `lib/email/senders.ts`):
+
+| Email | From |
+| --- | --- |
+| Sign-in codes | `JA Wealth <auth@no-reply.jagroup.co>` |
+| Report ready | `JA Wealth Reports <reports@no-reply.jagroup.co>`, replies go to the client's wealth manager |
+| Portfolio and account updates | `JA Wealth <updates@no-reply.jagroup.co>`, replies go to the client's wealth manager |
+| Client and wealth manager invites | `JA Wealth <welcome@no-reply.jagroup.co>` |
+
+Override any one with `RESEND_FROM_AUTH`, `RESEND_FROM_REPORTS`, `RESEND_FROM_UPDATES` or `RESEND_FROM_INVITES`. The Supabase `send-email` function reads the same `RESEND_FROM_DOMAIN` (or `RESEND_FROM_AUTH`), so set it in the function's secrets too.
 
 ## Rate limits (app-side)
 

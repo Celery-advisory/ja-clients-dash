@@ -130,7 +130,7 @@ export function ReportReadyEmail({
     >
       <EmailHeading>Your {periodLabel} report is ready</EmailHeading>
       <EmailBodyText>
-        Hello {firstName}, here's your {kindTitle.toLowerCase()} as of {asOfLabel}.
+        Hello {firstName}, here&apos;s your {kindTitle.toLowerCase()} as of {asOfLabel}.
       </EmailBodyText>
 
       {hasNumbers ? (

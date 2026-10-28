@@ -3,7 +3,13 @@ import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
 
 const resendApiKey = Deno.env.get("RESEND_API_KEY");
 const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET")?.replace(/^v1,whsec_/, "");
-const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") ?? "JA Wealth <noreply@no-reply.celerey.co>";
+// Sign-in codes come from auth@ on the verified sending domain, matching lib/email/senders.ts.
+const fromDomain = Deno.env.get("RESEND_FROM_DOMAIN")?.trim().replace(/^@/, "");
+const fromEmail =
+  Deno.env.get("RESEND_FROM_AUTH") ??
+  (fromDomain ? `JA Wealth <auth@${fromDomain}>` : undefined) ??
+  Deno.env.get("RESEND_FROM_EMAIL") ??
+  "JA Wealth <noreply@no-reply.celerey.co>";
 
 type SendEmailHookPayload = {
   user: { email: string };

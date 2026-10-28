@@ -289,10 +289,8 @@ export async function notifyClient(params: {
   const portalUrl = `${origin}/clients/dashboard`;
 
   try {
+    const advisor = client.advisor_id ? await getAdvisorById(client.advisor_id) : null;
     if (params.kind === "report" && params.report) {
-      const advisor = client.advisor_id
-        ? await getAdvisorById(client.advisor_id)
-        : null;
       await sendReportReadyEmail({
         to: client.email,
         clientName: client.full_name,
@@ -319,6 +317,7 @@ export async function notifyClient(params: {
       title: params.title,
       body: params.body,
       loginUrl: portalUrl,
+      replyTo: advisor?.email ?? null,
     });
     return { emailed: true };
   } catch {

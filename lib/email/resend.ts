@@ -8,19 +8,9 @@ import { ClientUpdateEmail } from "@/lib/email/templates/client-update";
 import { OtpEmail } from "@/lib/email/templates/otp";
 import { PortalInviteEmail } from "@/lib/email/templates/portal-invite";
 import { ReportReadyEmail } from "@/lib/email/templates/report-ready";
+import { senderFor, type EmailKind } from "@/lib/email/senders";
 
 const apiKey = process.env.RESEND_API_KEY;
-
-function resolveFromEmail() {
-  const raw = process.env.RESEND_FROM_EMAIL?.trim();
-  if (!raw || !raw.includes("@")) {
-    return "JA Wealth <noreply@no-reply.celerey.co>";
-  }
-  if (raw.includes("<")) return raw;
-  return `JA Wealth <${raw}>`;
-}
-
-export const resendFromEmail = resolveFromEmail();
 
 export function getResendClient() {
   if (!apiKey) {
@@ -36,14 +26,18 @@ function sanitizeEmailHtml(html: string) {
 }
 
 async function sendRenderedEmail(params: {
+  kind: EmailKind;
   to: string;
   subject: string;
   react: ReactElement;
+  /** Where a reply goes; the sending domain is no-reply, so replies need a real inbox. */
+  replyTo?: string | null;
 }) {
   const resend = getResendClient();
   const html = sanitizeEmailHtml(await render(params.react));
   const { error } = await resend.emails.send({
-    from: resendFromEmail,
+    from: senderFor(params.kind),
+    ...(params.replyTo ? { replyTo: params.replyTo } : {}),
     to: params.to,
     subject: params.subject,
     html,
@@ -57,6 +51,7 @@ async function sendRenderedEmail(params: {
 
 export async function sendOtpEmail({ to, token }: { to: string; token: string }) {
   await sendRenderedEmail({
+    kind: "auth",
     to,
     subject: "Your JA Wealth sign-in code",
     react: OtpEmail({ token }),
@@ -72,6 +67,7 @@ export async function sendPortalInviteEmail(params: {
   await sendRenderedEmail({
     to: params.to,
     subject: "Your JA Wealth client portal is ready",
+    kind: "invites",
     react: PortalInviteEmail({
       firstName: firstNameFrom(params.clientName),
       clientNumber: params.clientNumber,
@@ -89,6 +85,7 @@ export async function sendAdvisorPortalInviteEmail(params: {
   await sendRenderedEmail({
     to: params.to,
     subject: "Your JA Wealth wealth manager portal is ready",
+    kind: "invites",
     react: AdvisorInviteEmail({
       firstName: firstNameFrom(params.advisorName),
       loginUrl: params.loginUrl,
@@ -103,10 +100,13 @@ export async function sendClientUpdateEmail(params: {
   title: string;
   body: string;
   loginUrl: string;
+  replyTo?: string | null;
 }) {
   await sendRenderedEmail({
+    replyTo: params.replyTo,
     to: params.to,
     subject: params.title,
+    kind: "updates",
     react: ClientUpdateEmail({
       firstName: firstNameFrom(params.clientName),
       title: params.title,
@@ -136,6 +136,8 @@ export async function sendReportReadyEmail(params: {
   await sendRenderedEmail({
     to: params.to,
     subject: `Your ${params.periodLabel} report is ready`,
+    kind: "reports",
+    replyTo: params.advisorEmail,
     react: ReportReadyEmail({
       firstName: firstNameFrom(params.clientName),
       periodLabel: params.periodLabel,
