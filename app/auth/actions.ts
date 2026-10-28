@@ -44,23 +44,6 @@ async function signedInUserFor(email: string): Promise<SignedInUser | null> {
   return null;
 }
 
-export async function sendLoginOtp(formData: FormData) {
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const next = String(formData.get("next") ?? "").trim();
-  if (!email) redirect("/login?error=email");
-
-  try {
-    await deliverLoginOtp(email);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Could not send code";
-    redirect(loginErrorPath(email, message));
-  }
-
-  const params = new URLSearchParams({ email });
-  if (next) params.set("next", next);
-  redirect(`/login/verify?${params.toString()}`);
-}
-
 export async function resendLoginOtp(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const next = String(formData.get("next") ?? "").trim();
